@@ -1,0 +1,15 @@
+# Ignora dependências pesadas
+node_modules/
+dist/
+build/
+
+# Ignora arquivos de log e temporários
+.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ignora arquivos de configuração de outros editores (opcional)
+.vscode/
+.antigravity/
+.windsurf/

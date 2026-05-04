@@ -1,0 +1,40 @@
+-pré-inscrição das equipes
+	-aluno que cadastrar poderá editar a sua equipe
+	-equipe terá Foto, nome, cor, líder (quem está criando), membros
+	
+-Usuário admin para gerenciar
+	-Usuário michele admin
+
+-Tela de login e cadastro
+	-Cargo professor, aluno e supervisor (Aluno com privilégio)
+	-Aluno terá nome, matrícula, curso
+	-Professor terá nome, matrícula
+	-Supervisor só pode lançar pontos e penalidades
+	
+-tela de análise e aprovação 
+	-Aprovação de equipes
+
+-Tela de gerenciamento
+	-Usuários
+	-Equipes (exibir líder)
+		-Limites equipes
+	-Atividades
+		-Atividade terá nome, descrição, pontuação vitória e consolação.
+	-Edição do site
+		-Nome e logo, data e hora, local, objetivo, organização
+		-Edição de nome fantasia do cargo só para exibição
+
+-Tela inicial bem-vindo
+	-Nome e logo, data e hora, local, objetivo, organização (o que foi editado pelo prof)
+	-Botão dashboard
+	
+
+-Tela de lançamento de pontuação
+	-Cadastrar N equipes participantes
+		-Inserir N vencedores, todos os outros serão consolados
+	-Penalidades
+
+-Tela de dashboard pública: Tema aviação
+
+
+	

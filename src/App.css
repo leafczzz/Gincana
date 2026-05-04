@@ -1,0 +1,20 @@
+/* App-specific overrides */
+.app-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+.main-content-wrapper {
+    flex: 1;
+    min-height: 100vh;
+}
+
+@media (max-width: 768px) {
+    .app-container {
+        display: block;
+    }
+    
+    .main-content-wrapper {
+        margin-left: 0;
+    }
+}

@@ -1,0 +1,45 @@
+.users-container {
+  padding: 1rem;
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.users-table th, .users-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.users-table th {
+  background-color: var(--bg-light);
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.role-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 15px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.role-admin { background-color: #ffebee; color: #c62828; }
+.role-professor { background-color: #e3f2fd; color: #1565c0; }
+.role-supervisor { background-color: #fff3e0; color: #ef6c00; }
+.role-student { background-color: #e8f5e9; color: #2e7d32; }
+
+.role-select {
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  background-color: white;
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.table-responsive {
+  overflow-x: auto;
+}

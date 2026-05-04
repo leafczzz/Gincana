@@ -130,7 +130,6 @@ function AppContent() {
 
   async function fetchTeams() {
     if (!supabase) {
-      console.error('Supabase não configurado!')
       setDataLoading(false)
       return
     }
@@ -376,7 +375,6 @@ function AppContent() {
         let appliedPoints = 0
         let appliedDesc = desc
 
-        // Só recebe pontos se participou
         if (participants.includes(team.id)) {
           if (winners.includes(team.id)) {
             appliedPoints = points

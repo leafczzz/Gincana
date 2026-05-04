@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
+import FlightPanel from '../FlightPanel'
 import './PublicDashboard.css'
 
 export default function PublicDashboard({ onBack }) {
@@ -11,7 +12,7 @@ export default function PublicDashboard({ onBack }) {
       try {
         const { data, error } = await supabase
           .from('teams')
-          .select('*')
+          .select('*, profiles!teams_leader_id_fkey(name)')
           .eq('status', 'approved')
           .order('score', { ascending: false })
         
@@ -26,32 +27,13 @@ export default function PublicDashboard({ onBack }) {
     fetchTeams()
   }, [])
 
-  return (
-    <div className="public-dashboard aviation-theme">
-      <header className="aviation-header">
-        <button onClick={onBack} className="btn-back"><i className="fas fa-arrow-left"></i> Voltar</button>
-        <h1><i className="fas fa-plane"></i> Gincana MT - Painel de Voo</h1>
-      </header>
+  if (loading) {
+    return <div className="loading" style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a', color: '#fff' }}>Carregando radares...</div>
+  }
 
-      <div className="aviation-content">
-        {loading ? (
-          <div className="loading">Carregando radares...</div>
-        ) : (
-          <div className="radar-grid">
-            {teams.map((team, index) => (
-              <div key={team.id} className={`radar-card position-${index + 1}`} style={{'--team-color': team.color}}>
-                <div className="radar-rank">#{index + 1}</div>
-                <div className="radar-info">
-                  <h2>{team.name}</h2>
-                  <div className="radar-score">{team.score} PTS</div>
-                </div>
-                {team.image_url && <img src={team.image_url} alt={team.name} className="radar-avatar" />}
-              </div>
-            ))}
-            {teams.length === 0 && <div className="no-data">Nenhuma equipe no radar ainda.</div>}
-          </div>
-        )}
-      </div>
+  return (
+    <div style={{ minHeight: '100vh', background: '#000', padding: '1rem' }}>
+      <FlightPanel teams={teams} onBack={onBack} />
     </div>
   )
 }

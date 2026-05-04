@@ -37,8 +37,12 @@ export default function LandingPage({ onEnterApp, onViewDashboard }) {
   const objective = settings?.objective || 'Integração e diversão'
   const organization = settings?.organization || 'Comissão Organizadora'
 
+  const bgUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/bd/foto%20iff.jpeg`
+
   return (
     <div className="landing-page">
+      <div className="landing-page-bg" style={{ backgroundImage: `url("${bgUrl}")` }}></div>
+      <div className="landing-page-overlay"></div>
       <div className="landing-content">
         {logoUrl ? (
           <img src={logoUrl} alt="Logo do Evento" className="landing-logo" />

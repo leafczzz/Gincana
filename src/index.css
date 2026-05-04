@@ -616,6 +616,7 @@ body {
     
     .main-content-wrapper {
         margin-left: 280px;
+        width: calc(100% - 280px);
     }
 }
 
@@ -765,5 +766,33 @@ body {
 }
 
 .team-actions .btn-icon:last-child:hover {
+    color: var(--error);
+}
+
+/* Members Tag */
+.member-tag {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0,0,0,0.02);
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.5rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(0,0,0,0.1);
+    font-size: 0.95rem;
+}
+
+.member-tag .remove-btn {
+    color: var(--text-muted);
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-size: 1rem;
+    opacity: 0;
+    transition: var(--transition);
+}
+
+.member-tag:hover .remove-btn {
+    opacity: 1;
     color: var(--error);
 }

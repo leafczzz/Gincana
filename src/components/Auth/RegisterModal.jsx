@@ -4,9 +4,7 @@ import './Auth.css'
 
 const ROLE_OPTIONS = [
   { value: 'student', label: 'Aluno' },
-  { value: 'professor', label: 'Professor' },
-  { value: 'supervisor', label: 'Supervisor' },
-  { value: 'admin', label: 'Administrador (Acesso Total)' }
+  { value: 'professor', label: 'Professor' }
 ]
 
 export default function RegisterModal({ onClose, onSwitchToLogin }) {

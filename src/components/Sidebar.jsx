@@ -3,6 +3,7 @@ import './Sidebar.css'
 export default function Sidebar({ isOpen, onClose, currentSection, onNavigate, userRole }) {
   const allNavItems = [
     { id: 'dashboard', icon: 'fa-chart-line', label: 'Dashboard', roles: ['admin', 'professor', 'supervisor', 'student'] },
+    { id: 'flightPanel', icon: 'fa-plane-departure', label: 'Painel de Voo', roles: ['admin', 'professor', 'supervisor', 'student'] },
     { id: 'teams', icon: 'fa-users', label: 'Equipes', roles: ['admin', 'professor', 'supervisor', 'student'] },
     { id: 'approvals', icon: 'fa-check-circle', label: 'Aprovações', roles: ['admin', 'professor'] },
     { id: 'challenges', icon: 'fa-trophy', label: 'Desafios', roles: ['admin', 'professor', 'supervisor', 'student'] },

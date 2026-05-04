@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react'
 
 export default function TeamModal({ team, onClose, onSave }) {
   const [preview, setPreview] = useState(null)
+  const [members, setMembers] = useState(team?.members || [])
+  const [memberInput, setMemberInput] = useState('')
   const fileInputRef = useRef(null)
 
   useEffect(() => {
@@ -28,8 +30,23 @@ export default function TeamModal({ team, onClose, onSave }) {
     const file = fileInputRef.current?.files[0]
     
     if (name) {
-      onSave(name, color, file)
+      onSave(name, color, file, members)
     }
+  }
+
+  const handleMemberKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      const newMember = memberInput.trim()
+      if (newMember && !members.includes(newMember)) {
+        setMembers([...members, newMember])
+        setMemberInput('')
+      }
+    }
+  }
+
+  const removeMember = (indexToRemove) => {
+    setMembers(members.filter((_, idx) => idx !== indexToRemove))
   }
 
   return (
@@ -63,8 +80,28 @@ export default function TeamModal({ team, onClose, onSave }) {
             </div>
           </div>
           <div className="form-group">
-            <label>Nome</label>
+            <label>Nome da Equipe</label>
             <input type="text" name="teamName" defaultValue={team?.name || ''} required />
+          </div>
+          <div className="form-group">
+            <label>Membros da Equipe (pressione Enter para adicionar)</label>
+            <input 
+              type="text" 
+              value={memberInput}
+              onChange={(e) => setMemberInput(e.target.value)}
+              onKeyDown={handleMemberKeyDown}
+              placeholder="Digite o nome do aluno e pressione Enter"
+            />
+            <div className="members-list" style={{ marginTop: '0.5rem' }}>
+              {members.map((member, idx) => (
+                <div key={idx} className="member-tag">
+                  <span>{member}</span>
+                  <button type="button" className="remove-btn" onClick={() => removeMember(idx)}>
+                    <i className="fas fa-times"></i>
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
           <div className="form-group">
             <label>Cor</label>

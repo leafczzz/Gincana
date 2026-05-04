@@ -64,6 +64,7 @@ export function AuthProvider({ children }) {
         registration,
         course,
         role,
+        status: 'pending'
       })
 
       if (profileError) throw profileError

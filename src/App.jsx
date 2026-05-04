@@ -18,10 +18,13 @@ import PublicDashboard from './components/PublicDashboard/PublicDashboard'
 import Users from './components/Users/Users'
 import Settings from './components/Settings/Settings'
 import Approvals from './components/Approvals/Approvals'
+import ProfileModal from './components/ProfileModal'
+import FlightPanel from './components/FlightPanel'
 import './App.css'
 
 const sections = {
   dashboard: { title: 'Dashboard', desc: 'Bem-vindo ao gerenciador da gincana.' },
+  flightPanel: { title: 'Painel de Voo', desc: 'Acompanhe as equipes em tempo real.' },
   teams: { title: 'Gerenciar Equipes', desc: 'Cadastre e visualize as equipes participantes.' },
   challenges: { title: 'Desafios', desc: 'Gerencie os desafios da gincana.' },
   scoreboard: { title: 'Placar Geral', desc: 'Acompanhe a classificação em tempo real.' },
@@ -46,7 +49,9 @@ function AppContent() {
   const [selectedChallenge, setSelectedChallenge] = useState(null)
   const [toasts, setToasts] = useState([])
   const [dataLoading, setDataLoading] = useState(true)
+  const [profileModalOpen, setProfileModalOpen] = useState(false)
   const [publicView, setPublicView] = useState('landing')
+  const [fullscreenFlight, setFullscreenFlight] = useState(false)
 
   useEffect(() => {
     if (user) {
@@ -102,7 +107,7 @@ function AppContent() {
     }, 3000)
   }
 
-  async function addTeam(name, color, imageFile) {
+  async function addTeam(name, color, imageFile, members = []) {
     if (teams.find(t => t.name.toLowerCase() === name.toLowerCase())) {
       showToast('Já existe uma equipe com este nome!', 'error')
       return
@@ -139,7 +144,8 @@ function AppContent() {
       history: [],
       image_url: imageUrl,
       leader_id: user.id,
-      status: profile?.role === 'student' ? 'pending' : 'approved'
+      status: profile?.role === 'student' ? 'pending' : 'approved',
+      members
     }
 
     try {
@@ -160,7 +166,7 @@ function AppContent() {
     setTeamModalOpen(false)
   }
 
-  async function updateTeam(id, name, color, imageFile) {
+  async function updateTeam(id, name, color, imageFile, members = []) {
     const team = teams.find(t => t.id === id)
     if (!team) return
 
@@ -191,7 +197,7 @@ function AppContent() {
     try {
       const { data, error } = await supabase
         .from('teams')
-        .update({ name, color, image_url: imageUrl })
+        .update({ name, color, image_url: imageUrl, members })
         .eq('id', id)
         .select()
         .single()
@@ -340,7 +346,9 @@ function AppContent() {
     setPointsModalOpen(true)
   }
 
-  const sortedTeams = [...teams].sort((a, b) => b.score - a.score)
+  const userRole = profile?.role || 'student'
+  const approvedTeams = teams.filter(t => t.status === 'approved')
+  const sortedTeams = [...approvedTeams].sort((a, b) => b.score - a.score)
   const leader = sortedTeams.length > 0 ? sortedTeams[0].name : '---'
   const leaderScore = sortedTeams.length > 0 ? sortedTeams[0].score : 0
 
@@ -376,7 +384,32 @@ function AppContent() {
     )
   }
 
-  const userRole = profile?.role || 'student'
+  const sectionsWithRole = {
+    ...sections,
+    teams: { 
+      title: userRole === 'student' ? 'Equipes' : 'Gerenciar Equipes', 
+      desc: userRole === 'student' ? 'Visualize as equipes participantes.' : 'Cadastre e visualize as equipes participantes.' 
+    }
+  }
+
+  if (profile?.status === 'pending') {
+    return (
+      <div className="landing-page">
+        <div className="landing-page-bg" style={{ backgroundImage: `url("${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/bd/foto%20iff.jpeg")` }}></div>
+        <div className="landing-page-overlay"></div>
+        <div className="landing-content">
+          <div className="landing-icon"><i className="fas fa-clock"></i></div>
+          <h1 className="landing-title" style={{ color: '#fff' }}>Conta em Análise</h1>
+          <p style={{ color: '#fff', fontSize: '1.2rem', marginBottom: '2rem' }}>Sua conta foi criada e está aguardando aprovação de um professor ou administrador.</p>
+          <button onClick={signOut} className="btn btn-primary btn-large">Sair</button>
+        </div>
+      </div>
+    )
+  }
+
+  if (fullscreenFlight) {
+    return <PublicDashboard onBack={() => setFullscreenFlight(false)} />
+  }
 
   return (
     <div className="app-container">
@@ -384,14 +417,20 @@ function AppContent() {
         isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)}
         currentSection={currentSection}
-        onNavigate={setCurrentSection}
+        onNavigate={(section) => {
+          if (section === 'flightPanel') {
+            setFullscreenFlight(true)
+          } else {
+            setCurrentSection(section)
+          }
+        }}
         userRole={userRole}
       />
       
       <main className="main-content-wrapper">
         <Header
-          title={sections[currentSection].title}
-          desc={sections[currentSection].desc}
+          title={sectionsWithRole[currentSection].title}
+          desc={sectionsWithRole[currentSection].desc}
           onMenuClick={() => setSidebarOpen(true)}
           onQuickPoints={() => {
             if (teams.length === 0) {
@@ -404,19 +443,20 @@ function AppContent() {
           profile={profile}
           onLogin={() => setShowLogin(true)}
           onLogout={signOut}
+          onProfile={() => setProfileModalOpen(true)}
         />
 
         <div className="main-content">
           {currentSection === 'dashboard' && (
             <Dashboard
-              teams={teams}
+              teams={approvedTeams}
               leaderScore={leaderScore}
               leader={leader}
             />
           )}
           {currentSection === 'teams' && (
             <Teams 
-              teams={teams} 
+              teams={userRole === 'student' ? teams.filter(t => t.status === 'approved' || t.leader_id === user.id) : teams} 
               user={user}
               profile={profile}
               onRemove={removeTeam}
@@ -444,6 +484,7 @@ function AppContent() {
               onRemove={removeChallenge}
               onApply={(c) => openPointsModal(c)}
               hasTeams={teams.length > 0}
+              userRole={userRole}
             />
           )}
           {currentSection === 'scoreboard' && (
@@ -462,11 +503,11 @@ function AppContent() {
             setTeamModalOpen(false)
             setTeamEdit(null)
           }}
-          onSave={(name, color, imageFile) => {
+          onSave={(name, color, imageFile, members) => {
             if (teamEdit) {
-              updateTeam(teamEdit.id, name, color, imageFile)
+              updateTeam(teamEdit.id, name, color, imageFile, members)
             } else {
-              addTeam(name, color, imageFile)
+              addTeam(name, color, imageFile, members)
             }
           }}
         />
@@ -498,6 +539,19 @@ function AppContent() {
             } else {
               addChallenge(title, description, winPoints, consolationPoints, icon)
             }
+          }}
+        />
+      )}
+
+      {profileModalOpen && (
+        <ProfileModal 
+          user={user}
+          profile={profile}
+          onClose={() => setProfileModalOpen(false)}
+          onUpdate={(updatedProfile) => {
+            setProfileModalOpen(false)
+            showToast('Perfil atualizado!', 'success')
+            window.location.reload()
           }}
         />
       )}

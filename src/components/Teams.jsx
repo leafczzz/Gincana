@@ -1,14 +1,21 @@
 export default function Teams({ teams, onRemove, onAddNew, onEdit, user, profile }) {
-  const isAdminOrProf = ['admin', 'professor', 'supervisor'].includes(profile?.role)
+  const isAdminOrProf = ['admin', 'professor'].includes(profile?.role)
+  const isStudentOrSupervisor = ['student', 'supervisor'].includes(profile?.role)
 
   return (
     <section id="teams" className="section">
       <div className="data-card">
         <div className="table-header">
           <h3>Equipes</h3>
-          <button className="btn btn-primary btn-sm" onClick={onAddNew}>
-            + Nova
-          </button>
+          {isStudentOrSupervisor ? (
+            <button className="btn btn-primary btn-sm" onClick={onAddNew}>
+              + Criar Minha Equipe
+            </button>
+          ) : (
+            <button className="btn btn-primary btn-sm" onClick={onAddNew}>
+              + Nova Equipe
+            </button>
+          )}
         </div>
         <div className="teams-grid">
           {teams.length === 0 ? (

@@ -50,15 +50,19 @@ export default function Settings() {
     e.preventDefault()
     setSaving(true)
     try {
+      const payload = { ...settings }
+      if (!payload.event_date) payload.event_date = null
+      if (!payload.event_time) payload.event_time = null
+      
       const { error } = await supabase
         .from('event_settings')
-        .upsert({ id: 1, ...settings })
+        .upsert({ id: 1, ...payload })
       
       if (error) throw error
       alert('Configurações salvas com sucesso!')
     } catch (error) {
       console.error('Erro ao salvar:', error)
-      alert('Erro ao salvar configurações')
+      alert('Erro ao salvar configurações. Verifique o console para mais detalhes.')
     } finally {
       setSaving(false)
     }

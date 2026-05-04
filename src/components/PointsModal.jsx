@@ -4,6 +4,7 @@ export default function PointsModal({ teams, challenges, selectedChallenge, onCl
   const [activity, setActivity] = useState('custom')
   const [points, setPoints] = useState(10)
   const [winners, setWinners] = useState([])
+  const [participants, setParticipants] = useState(teams.map(t => t.id))
   const [isConsolationMode, setIsConsolationMode] = useState(false)
 
   useEffect(() => {
@@ -34,14 +35,34 @@ export default function PointsModal({ teams, challenges, selectedChallenge, onCl
   }
 
   const toggleWinner = (teamId) => {
-    setWinners(prev => 
-      prev.includes(teamId) ? prev.filter(id => id !== teamId) : [...prev, teamId]
-    )
+    setWinners(prev => {
+      const isWinner = prev.includes(teamId)
+      const newWinners = isWinner ? prev.filter(id => id !== teamId) : [...prev, teamId]
+      
+      // Se marcou como vencedor, automaticamente tem que ser participante
+      if (!isWinner && !participants.includes(teamId)) {
+        setParticipants(p => [...p, teamId])
+      }
+      return newWinners
+    })
+  }
+
+  const toggleParticipant = (teamId) => {
+    setParticipants(prev => {
+      const isParticipant = prev.includes(teamId)
+      
+      // Se está desmarcando participante, tem que desmarcar como vencedor tbm
+      if (isParticipant && winners.includes(teamId)) {
+        setWinners(w => w.filter(id => id !== teamId))
+      }
+      
+      return isParticipant ? prev.filter(id => id !== teamId) : [...prev, teamId]
+    })
   }
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (winners.length === 0) {
+    if (winners.length === 0 && participants.length === 0) {
       alert("Selecione pelo menos uma equipe!")
       return
     }
@@ -63,6 +84,7 @@ export default function PointsModal({ teams, challenges, selectedChallenge, onCl
 
     onSave({
       winners,
+      participants,
       points,
       desc,
       isConsolationMode,
@@ -99,19 +121,43 @@ export default function PointsModal({ teams, challenges, selectedChallenge, onCl
           </div>
 
           <div className="form-group">
-            <label>{isConsolationMode ? "Equipes Vencedoras (as demais receberão consolação)" : "Equipes a receber os pontos"}</label>
-            <div className="team-checkbox-list" style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid #ddd', padding: '0.5rem', borderRadius: '5px' }}>
-              {teams.map(t => (
-                <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.25rem 0' }}>
-                  <input 
-                    type="checkbox" 
-                    id={`team-${t.id}`}
-                    checked={winners.includes(t.id)}
-                    onChange={() => toggleWinner(t.id)}
-                  />
-                  <label htmlFor={`team-${t.id}`} style={{ margin: 0, cursor: 'pointer' }}>{t.name}</label>
-                </div>
-              ))}
+            <label>Seleção de Equipes</label>
+            <p style={{ fontSize: '0.85rem', color: '#888', marginBottom: '0.5rem' }}>
+              Marque as equipes que participaram da atividade e as que venceram.
+            </p>
+            <div className="team-checkbox-list" style={{ maxHeight: '250px', overflowY: 'auto', border: '1px solid var(--border-color, rgba(255,255,255,0.1))', padding: '0.5rem', borderRadius: '5px', background: 'transparent' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--border-color, rgba(255,255,255,0.1))' }}>
+                    <th style={{ padding: '0.5rem' }}>Equipe</th>
+                    <th style={{ padding: '0.5rem', textAlign: 'center' }}>Participou</th>
+                    <th style={{ padding: '0.5rem', textAlign: 'center' }}>Venceu</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {teams.map(t => (
+                    <tr key={t.id} style={{ borderBottom: '1px solid var(--border-color, rgba(255,255,255,0.05))' }}>
+                      <td style={{ padding: '0.5rem', fontWeight: 'bold', color: t.color }}>{t.name}</td>
+                      <td style={{ padding: '0.5rem', textAlign: 'center' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={participants.includes(t.id)}
+                          onChange={() => toggleParticipant(t.id)}
+                          style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                        />
+                      </td>
+                      <td style={{ padding: '0.5rem', textAlign: 'center' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={winners.includes(t.id)}
+                          onChange={() => toggleWinner(t.id)}
+                          style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
 

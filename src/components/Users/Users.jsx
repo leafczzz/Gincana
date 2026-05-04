@@ -56,6 +56,23 @@ export default function Users() {
     }
   }
 
+  async function deleteUser(userId) {
+    if (!confirm('Deseja realmente apagar este usuário? Esta ação removerá o perfil dele do sistema.')) return
+    
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', userId)
+      
+      if (error) throw error
+      setUsers(users.filter(u => u.id !== userId))
+    } catch (error) {
+      console.error('Erro ao apagar usuário:', error)
+      alert('Erro ao apagar usuário')
+    }
+  }
+
   const roleMap = {
     'admin': 'Administrador',
     'professor': 'Professor',
@@ -100,8 +117,11 @@ export default function Users() {
                       </span>
                     </td>
                     <td>
-                      <span style={{ color: user.status === 'approved' ? '#2ecc71' : '#f1c40f', fontWeight: 'bold' }}>
-                        {user.status === 'approved' ? 'Aprovado' : 'Pendente'}
+                      <span style={{ 
+                        color: user.status === 'approved' ? '#2ecc71' : (user.status === 'blocked' ? '#e74c3c' : '#f1c40f'), 
+                        fontWeight: 'bold' 
+                      }}>
+                        {user.status === 'approved' ? 'Aprovado' : (user.status === 'blocked' ? 'Bloqueado' : 'Pendente')}
                       </span>
                     </td>
                     <td style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
@@ -117,15 +137,27 @@ export default function Users() {
                         <option value="admin">Administrador</option>
                       </select>
                       
-                      {user.status !== 'approved' ? (
-                        <button className="btn btn-primary btn-sm" onClick={() => updateStatus(user.id, 'approved')}>
+                      {user.status === 'pending' && (
+                        <button className="btn btn-primary btn-sm" onClick={() => updateStatus(user.id, 'approved')} title="Aprovar">
                           Aprovar
                         </button>
-                      ) : (
-                        <button className="btn btn-secondary btn-sm" onClick={() => updateStatus(user.id, 'pending')}>
-                          Suspender
+                      )}
+                      
+                      {user.status === 'approved' && (
+                        <button className="btn btn-warning btn-sm" onClick={() => updateStatus(user.id, 'blocked')} title="Bloquear Login">
+                          Bloquear
                         </button>
                       )}
+
+                      {user.status === 'blocked' && (
+                        <button className="btn btn-primary btn-sm" onClick={() => updateStatus(user.id, 'approved')} title="Desbloquear">
+                          Desbloquear
+                        </button>
+                      )}
+
+                      <button className="btn btn-danger btn-sm" onClick={() => deleteUser(user.id)} title="Apagar Usuário">
+                        <i className="fas fa-trash"></i>
+                      </button>
                     </td>
                   </tr>
                 ))}

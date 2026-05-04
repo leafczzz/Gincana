@@ -304,7 +304,7 @@ function AppContent() {
   }
 
   async function addPoints(payload) {
-    const { winners, points, desc, isConsolationMode, consolationPoints } = payload
+    const { winners, participants, points, desc, isConsolationMode, consolationPoints } = payload
 
     try {
       const updatedTeams = [...teams]
@@ -313,11 +313,14 @@ function AppContent() {
         let appliedPoints = 0
         let appliedDesc = desc
 
-        if (winners.includes(team.id)) {
-          appliedPoints = points
-        } else if (isConsolationMode) {
-          appliedPoints = consolationPoints
-          appliedDesc = `${desc} (Consolação)`
+        // Só recebe pontos se participou
+        if (participants.includes(team.id)) {
+          if (winners.includes(team.id)) {
+            appliedPoints = points
+          } else if (isConsolationMode) {
+            appliedPoints = consolationPoints
+            appliedDesc = `${desc} (Participação)`
+          }
         }
 
         if (appliedPoints !== 0) {
@@ -392,6 +395,21 @@ function AppContent() {
     }
   }
 
+  if (user && !loading && !profile) {
+    return (
+      <div className="landing-page">
+        <div className="landing-page-bg" style={{ backgroundImage: `url("${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/bd/foto%20iff.jpeg")` }}></div>
+        <div className="landing-page-overlay"></div>
+        <div className="landing-content">
+          <div className="landing-icon"><i className="fas fa-user-slash"></i></div>
+          <h1 className="landing-title" style={{ color: '#fff' }}>Perfil Não Encontrado</h1>
+          <p style={{ color: '#fff', fontSize: '1.2rem', marginBottom: '2rem' }}>Seu perfil foi removido do sistema. Entre em contato com a organização.</p>
+          <button onClick={signOut} className="btn btn-primary btn-large">Sair</button>
+        </div>
+      </div>
+    )
+  }
+
   if (profile?.status === 'pending') {
     return (
       <div className="landing-page">
@@ -401,6 +419,21 @@ function AppContent() {
           <div className="landing-icon"><i className="fas fa-clock"></i></div>
           <h1 className="landing-title" style={{ color: '#fff' }}>Conta em Análise</h1>
           <p style={{ color: '#fff', fontSize: '1.2rem', marginBottom: '2rem' }}>Sua conta foi criada e está aguardando aprovação de um professor ou administrador.</p>
+          <button onClick={signOut} className="btn btn-primary btn-large">Sair</button>
+        </div>
+      </div>
+    )
+  }
+
+  if (profile?.status === 'blocked') {
+    return (
+      <div className="landing-page">
+        <div className="landing-page-bg" style={{ backgroundImage: `url("${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/bd/foto%20iff.jpeg")` }}></div>
+        <div className="landing-page-overlay"></div>
+        <div className="landing-content">
+          <div className="landing-icon"><i className="fas fa-ban"></i></div>
+          <h1 className="landing-title" style={{ color: '#fff' }}>Acesso Bloqueado</h1>
+          <p style={{ color: '#fff', fontSize: '1.2rem', marginBottom: '2rem' }}>Seu acesso ao sistema foi bloqueado por um administrador.</p>
           <button onClick={signOut} className="btn btn-primary btn-large">Sair</button>
         </div>
       </div>

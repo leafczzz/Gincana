@@ -31,6 +31,10 @@ export default function Teams({ teams, onRemove, onAddNew, onEdit, user, profile
                     <div className="team-image">
                       <img src={t.image_url} alt={t.name} />
                     </div>
+                  ) : t.icon ? (
+                    <div className="team-image" style={{ background: t.color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '1.5rem' }}>
+                      <i className={`fas ${t.icon}`}></i>
+                    </div>
                   ) : (
                     <div className="color-dot" style={{ background: t.color }}></div>
                   )}

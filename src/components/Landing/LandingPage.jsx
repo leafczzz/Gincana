@@ -31,7 +31,10 @@ export default function LandingPage({ onEnterApp, onViewDashboard }) {
 
   const eventName = settings?.name || 'Gincana MT'
   const logoUrl = settings?.logo_url || null
-  const dateStr = settings?.event_date ? new Date(settings.event_date).toLocaleDateString('pt-BR') : 'A definir'
+  const dateStr = settings?.event_date ? (() => {
+    const [year, month, day] = settings.event_date.split('-')
+    return `${day}/${month}/${year}`
+  })() : 'A definir'
   const timeStr = settings?.event_time ? settings.event_time.substring(0, 5) : ''
   const location = settings?.location || 'Local a definir'
   const objective = settings?.objective || 'Integração e diversão'
@@ -45,9 +48,11 @@ export default function LandingPage({ onEnterApp, onViewDashboard }) {
       <div className="landing-page-overlay"></div>
       <div className="landing-content">
         {logoUrl ? (
-          <img src={logoUrl} alt="Logo do Evento" className="landing-logo" />
+          <img src={logoUrl} alt="Logo do Evento" className="landing-logo" style={{ maxWidth: '180px', maxHeight: '180px', objectFit: 'contain', marginBottom: '1.5rem' }} />
         ) : (
-          <div className="landing-icon"><i className="fas fa-leaf"></i></div>
+          <div className="landing-icon" style={{ color: '#fff', fontSize: '4rem', marginBottom: '1.5rem' }}>
+            <i className={`fas ${settings?.icon || 'fa-leaf'}`}></i>
+          </div>
         )}
         <h1 className="landing-title">{eventName}</h1>
         
@@ -74,7 +79,7 @@ export default function LandingPage({ onEnterApp, onViewDashboard }) {
           <button className="btn btn-primary btn-large" onClick={onEnterApp}>
             Acessar Sistema
           </button>
-          <button className="btn btn-secondary btn-large" onClick={onViewDashboard} style={{ background: 'transparent', border: '2px solid var(--primary-color)' }}>
+          <button className="btn btn-secondary btn-large" onClick={onViewDashboard} style={{ background: 'transparent', border: '2px solid var(--primary-color)', color: '#fff' }}>
             Ver Placar Público
           </button>
         </div>

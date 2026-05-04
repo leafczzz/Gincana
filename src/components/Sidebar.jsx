@@ -1,6 +1,6 @@
 import './Sidebar.css'
 
-export default function Sidebar({ isOpen, onClose, currentSection, onNavigate, userRole }) {
+export default function Sidebar({ isOpen, onClose, currentSection, onNavigate, userRole, eventSettings }) {
   const allNavItems = [
     { id: 'dashboard', icon: 'fa-chart-line', label: 'Dashboard', roles: ['admin', 'professor', 'supervisor', 'student'] },
     { id: 'flightPanel', icon: 'fa-plane-departure', label: 'Painel de Voo', roles: ['admin', 'professor', 'supervisor', 'student'] },
@@ -23,9 +23,13 @@ export default function Sidebar({ isOpen, onClose, currentSection, onNavigate, u
       <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
         <div className="brand">
           <div className="brand-icon">
-            <i className="fas fa-leaf"></i>
+            {eventSettings?.logo_url ? (
+              <img src={eventSettings.logo_url} alt="Logo" style={{ width: '100%', height: '100%', borderRadius: 'inherit', objectFit: 'cover' }} />
+            ) : (
+              <i className={`fas ${eventSettings?.icon || 'fa-leaf'}`}></i>
+            )}
           </div>
-          <h2>Gincana MT</h2>
+          <h2>{eventSettings?.name || 'Gincana MT'}</h2>
         </div>
 
         <nav className="nav-menu">

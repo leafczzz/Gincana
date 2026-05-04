@@ -76,7 +76,7 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
       setError('Erro ao criar conta: ' + error.message)
     } else {
       onClose()
-      alert('Conta criada com sucesso! Faça login para continuar.')
+      showAlert('Conta criada com sucesso! Faça login para continuar.', 'Cadastro')
     }
 
     setLoading(false)

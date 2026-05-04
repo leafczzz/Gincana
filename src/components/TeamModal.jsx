@@ -1,8 +1,30 @@
 import { useState, useRef, useEffect } from 'react'
 
-export default function TeamModal({ team, onClose, onSave }) {
+const iconOptions = [
+  { value: 'fa-users', label: 'Equipe' },
+  { value: 'fa-star', label: 'Estrela' },
+  { value: 'fa-trophy', label: 'Troféu' },
+  { value: 'fa-medal', label: 'Medalha' },
+  { value: 'fa-crown', label: 'Coroa' },
+  { value: 'fa-bolt', label: 'Raio' },
+  { value: 'fa-heart', label: 'Coração' },
+  { value: 'fa-fire', label: 'Fogo' },
+  { value: 'fa-mountain', label: 'Montanha' },
+  { value: 'fa-tree', label: 'Árvore' },
+  { value: 'fa-sun', label: 'Sol' },
+  { value: 'fa-moon', label: 'Lua' },
+  { value: 'fa-cloud', label: 'Nuvem' },
+  { value: 'fa-leaf', label: 'Folha' },
+  { value: 'fa-plane', label: 'Avião' },
+  { value: 'fa-rocket', label: 'Foguete' },
+  { value: 'fa-globe', label: 'Globo' }
+]
+
+export default function TeamModal({ team, users, currentUserProfile, onClose, onSave }) {
   const [preview, setPreview] = useState(null)
   const [members, setMembers] = useState(team?.members || [])
+  const [leaderId, setLeaderId] = useState(team?.leader_id || currentUserProfile?.id)
+  const [icon, setIcon] = useState(team?.icon || 'fa-users')
   const [memberInput, setMemberInput] = useState('')
   const fileInputRef = useRef(null)
 
@@ -30,7 +52,7 @@ export default function TeamModal({ team, onClose, onSave }) {
     const file = fileInputRef.current?.files[0]
     
     if (name) {
-      onSave(name, color, file, members)
+      onSave(name, color, file, members, leaderId, icon)
     }
   }
 
@@ -83,6 +105,35 @@ export default function TeamModal({ team, onClose, onSave }) {
             <label>Nome da Equipe</label>
             <input type="text" name="teamName" defaultValue={team?.name || ''} required />
           </div>
+
+          <div className="form-group">
+            <label>Líder da Equipe</label>
+            {['admin', 'professor'].includes(currentUserProfile?.role) ? (
+              <select 
+                value={leaderId} 
+                onChange={(e) => setLeaderId(e.target.value)}
+                required
+              >
+                <option value="">Selecione um líder</option>
+                {users.map(u => (
+                  <option key={u.id} value={u.id}>{u.name}</option>
+                ))}
+              </select>
+            ) : (
+              <input 
+                type="text" 
+                value={team?.profiles?.name || currentUserProfile?.name} 
+                readOnly 
+                style={{ background: 'rgba(255,255,255,0.05)', cursor: 'not-allowed' }}
+              />
+            )}
+            <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '0.3rem' }}>
+              {['admin', 'professor'].includes(currentUserProfile?.role) 
+                ? 'Apenas professores e administradores podem trocar o líder.' 
+                : 'O líder da equipe não pode ser alterado por alunos.'}
+            </p>
+          </div>
+
           <div className="form-group">
             <label>Membros da Equipe (pressione Enter para adicionar)</label>
             <input 
@@ -103,6 +154,27 @@ export default function TeamModal({ team, onClose, onSave }) {
               ))}
             </div>
           </div>
+          <div className="form-group">
+            <label>Ícone da Equipe (usado se não houver imagem)</label>
+            <div className="icon-select">
+              {iconOptions.map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={`icon-option ${icon === opt.value && !preview ? 'selected' : ''}`}
+                  onClick={() => {
+                    setIcon(opt.value)
+                    setPreview(null)
+                    if(fileInputRef.current) fileInputRef.current.value = ''
+                  }}
+                  title={opt.label}
+                >
+                  <i className={`fas ${opt.value}`}></i>
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="form-group">
             <label>Cor</label>
             <input type="color" name="teamColor" defaultValue={team?.color || '#2D5A27'} />

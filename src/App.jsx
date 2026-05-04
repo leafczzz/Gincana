@@ -20,6 +20,7 @@ import Settings from './components/Settings/Settings'
 import Approvals from './components/Approvals/Approvals'
 import ProfileModal from './components/ProfileModal'
 import FlightPanel from './components/FlightPanel'
+import PopupModal from './components/PopupModal'
 import './App.css'
 
 const sections = {
@@ -52,13 +53,80 @@ function AppContent() {
   const [profileModalOpen, setProfileModalOpen] = useState(false)
   const [publicView, setPublicView] = useState('landing')
   const [fullscreenFlight, setFullscreenFlight] = useState(false)
+  const [eventSettings, setEventSettings] = useState(null)
+  const [allUsers, setAllUsers] = useState([])
+  const [popup, setPopup] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+    onCancel: () => {},
+    type: 'alert'
+  })
+
+  const showAlert = (message, title = 'Aviso') => {
+    setPopup({
+      isOpen: true,
+      title,
+      message,
+      onConfirm: () => setPopup(prev => ({ ...prev, isOpen: false })),
+      onCancel: () => setPopup(prev => ({ ...prev, isOpen: false })),
+      type: 'alert'
+    })
+  }
+
+  const showConfirm = (message, onConfirmAction, title = 'Confirmar') => {
+    setPopup({
+      isOpen: true,
+      title,
+      message,
+      onConfirm: () => {
+        onConfirmAction()
+        setPopup(prev => ({ ...prev, isOpen: false }))
+      },
+      onCancel: () => setPopup(prev => ({ ...prev, isOpen: false })),
+      type: 'confirm'
+    })
+  }
 
   useEffect(() => {
     if (user) {
       fetchTeams()
       fetchChallenges()
+      fetchAllUsers()
     }
+    fetchEventSettings()
   }, [user])
+
+  async function fetchAllUsers() {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name')
+        .order('name')
+      
+      if (error) throw error
+      setAllUsers(data || [])
+    } catch (error) {
+      console.error('Erro ao buscar usuários:', error)
+    }
+  }
+
+  async function fetchEventSettings() {
+    try {
+      const { data, error } = await supabase
+        .from('event_settings')
+        .select('*')
+        .single()
+      
+      if (data) {
+        setEventSettings(data)
+        document.title = data.name || 'Gincana MT'
+      }
+    } catch (error) {
+      console.error('Erro ao buscar configurações do evento:', error)
+    }
+  }
 
   async function fetchTeams() {
     if (!supabase) {
@@ -107,9 +175,9 @@ function AppContent() {
     }, 3000)
   }
 
-  async function addTeam(name, color, imageFile, members = []) {
+  async function addTeam(name, color, imageFile, members = [], icon = 'fa-users') {
     if (teams.find(t => t.name.toLowerCase() === name.toLowerCase())) {
-      showToast('Já existe uma equipe com este nome!', 'error')
+      showAlert('Já existe uma equipe com este nome!')
       return
     }
 
@@ -143,6 +211,7 @@ function AppContent() {
       score: 0,
       history: [],
       image_url: imageUrl,
+      icon,
       leader_id: user.id,
       status: profile?.role === 'student' ? 'pending' : 'approved',
       members
@@ -166,7 +235,7 @@ function AppContent() {
     setTeamModalOpen(false)
   }
 
-  async function updateTeam(id, name, color, imageFile, members = []) {
+  async function updateTeam(id, name, color, imageFile, members = [], leaderId, icon) {
     const team = teams.find(t => t.id === id)
     if (!team) return
 
@@ -197,9 +266,9 @@ function AppContent() {
     try {
       const { data, error } = await supabase
         .from('teams')
-        .update({ name, color, image_url: imageUrl, members })
+        .update({ name, color, image_url: imageUrl, members, leader_id: leaderId, icon })
         .eq('id', id)
-        .select()
+        .select('*, profiles!teams_leader_id_fkey(name)')
         .single()
       
       if (error) throw error
@@ -216,19 +285,16 @@ function AppContent() {
   }
 
   async function removeTeam(id) {
-    if (!confirm('Deseja realmente excluir esta equipe? Todos os pontos serão perdidos.')) {
-      return
-    }
-
-    try {
-      await supabase.from('teams').delete().eq('id', id)
-    } catch (error) {
-      console.log('Erro ao remover')
-    }
-
-    const newTeams = teams.filter(t => t.id !== id)
-    setTeams(newTeams)
-    showToast('Equipe removida.', 'primary')
+    showConfirm('Deseja realmente excluir esta equipe? Todos os pontos serão perdidos.', async () => {
+      try {
+        await supabase.from('teams').delete().eq('id', id)
+        const newTeams = teams.filter(t => t.id !== id)
+        setTeams(newTeams)
+        showToast('Equipe removida.', 'primary')
+      } catch (error) {
+        console.log('Erro ao remover')
+      }
+    })
   }
 
   async function addChallenge(title, description, winPoints, consolationPoints, icon) {
@@ -289,18 +355,15 @@ function AppContent() {
   }
 
   async function removeChallenge(id) {
-    if (!confirm('Deseja realmente excluir este desafio?')) {
-      return
-    }
-
-    try {
-      await supabase.from('challenges').delete().eq('id', id)
-    } catch (error) {
-      console.log('Erro ao remover')
-    }
-
-    setChallenges(prev => prev.filter(c => c.id !== id))
-    showToast('Desafio removido.', 'primary')
+    showConfirm('Deseja realmente excluir este desafio?', async () => {
+      try {
+        await supabase.from('challenges').delete().eq('id', id)
+        setChallenges(prev => prev.filter(c => c.id !== id))
+        showToast('Desafio removido.', 'primary')
+      } catch (error) {
+        console.log('Erro ao remover')
+      }
+    })
   }
 
   async function addPoints(payload) {
@@ -381,6 +444,7 @@ function AppContent() {
               setShowRegister(false)
               setShowLogin(true)
             }}
+            showAlert={showAlert}
           />
         )}
       </>
@@ -401,8 +465,15 @@ function AppContent() {
         <div className="landing-page-bg" style={{ backgroundImage: `url("${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/bd/foto%20iff.jpeg")` }}></div>
         <div className="landing-page-overlay"></div>
         <div className="landing-content">
-          <div className="landing-icon"><i className="fas fa-user-slash"></i></div>
+          {eventSettings?.logo_url ? (
+            <img src={eventSettings.logo_url} alt="Logo" style={{ maxWidth: '120px', marginBottom: '1rem' }} />
+          ) : (
+            <div className="landing-icon" style={{ color: '#fff' }}><i className={`fas ${eventSettings?.icon || 'fa-leaf'}`}></i></div>
+          )}
           <h1 className="landing-title" style={{ color: '#fff' }}>Perfil Não Encontrado</h1>
+          <div style={{ fontSize: '3rem', color: '#ff4d4d', marginBottom: '1rem' }}>
+            <i className="fas fa-user-slash"></i>
+          </div>
           <p style={{ color: '#fff', fontSize: '1.2rem', marginBottom: '2rem' }}>Seu perfil foi removido do sistema. Entre em contato com a organização.</p>
           <button onClick={signOut} className="btn btn-primary btn-large">Sair</button>
         </div>
@@ -416,8 +487,15 @@ function AppContent() {
         <div className="landing-page-bg" style={{ backgroundImage: `url("${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/bd/foto%20iff.jpeg")` }}></div>
         <div className="landing-page-overlay"></div>
         <div className="landing-content">
-          <div className="landing-icon"><i className="fas fa-clock"></i></div>
+          {eventSettings?.logo_url ? (
+            <img src={eventSettings.logo_url} alt="Logo" style={{ maxWidth: '120px', marginBottom: '1rem' }} />
+          ) : (
+            <div className="landing-icon" style={{ color: '#fff' }}><i className={`fas ${eventSettings?.icon || 'fa-leaf'}`}></i></div>
+          )}
           <h1 className="landing-title" style={{ color: '#fff' }}>Conta em Análise</h1>
+          <div style={{ fontSize: '3rem', color: '#f1c40f', marginBottom: '1rem' }}>
+            <i className="fas fa-clock"></i>
+          </div>
           <p style={{ color: '#fff', fontSize: '1.2rem', marginBottom: '2rem' }}>Sua conta foi criada e está aguardando aprovação de um professor ou administrador.</p>
           <button onClick={signOut} className="btn btn-primary btn-large">Sair</button>
         </div>
@@ -431,8 +509,15 @@ function AppContent() {
         <div className="landing-page-bg" style={{ backgroundImage: `url("${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/bd/foto%20iff.jpeg")` }}></div>
         <div className="landing-page-overlay"></div>
         <div className="landing-content">
-          <div className="landing-icon"><i className="fas fa-ban"></i></div>
+          {eventSettings?.logo_url ? (
+            <img src={eventSettings.logo_url} alt="Logo" style={{ maxWidth: '120px', marginBottom: '1rem' }} />
+          ) : (
+            <div className="landing-icon" style={{ color: '#fff' }}><i className={`fas ${eventSettings?.icon || 'fa-leaf'}`}></i></div>
+          )}
           <h1 className="landing-title" style={{ color: '#fff' }}>Acesso Bloqueado</h1>
+          <div style={{ fontSize: '3rem', color: '#e74c3c', marginBottom: '1rem' }}>
+            <i className="fas fa-ban"></i>
+          </div>
           <p style={{ color: '#fff', fontSize: '1.2rem', marginBottom: '2rem' }}>Seu acesso ao sistema foi bloqueado por um administrador.</p>
           <button onClick={signOut} className="btn btn-primary btn-large">Sair</button>
         </div>
@@ -458,6 +543,7 @@ function AppContent() {
           }
         }}
         userRole={userRole}
+        eventSettings={eventSettings}
       />
       
       <main className="main-content-wrapper">
@@ -518,29 +604,32 @@ function AppContent() {
               onApply={(c) => openPointsModal(c)}
               hasTeams={teams.length > 0}
               userRole={userRole}
+              showAlert={showAlert}
             />
           )}
           {currentSection === 'scoreboard' && (
             <Scoreboard teams={sortedTeams} />
           )}
-          {currentSection === 'users' && <Users />}
-          {currentSection === 'settings' && <Settings />}
-          {currentSection === 'approvals' && <Approvals />}
+          {currentSection === 'users' && <Users showAlert={showAlert} showConfirm={showConfirm} />}
+          {currentSection === 'settings' && <Settings showAlert={showAlert} />}
+          {currentSection === 'approvals' && <Approvals showAlert={showAlert} />}
         </div>
       </main>
 
       {teamModalOpen && (
         <TeamModal
           team={teamEdit}
+          users={allUsers}
+          currentUserProfile={profile}
           onClose={() => {
             setTeamModalOpen(false)
             setTeamEdit(null)
           }}
-          onSave={(name, color, imageFile, members) => {
+          onSave={(name, color, imageFile, members, leaderId, icon) => {
             if (teamEdit) {
-              updateTeam(teamEdit.id, name, color, imageFile, members)
+              updateTeam(teamEdit.id, name, color, imageFile, members, leaderId, icon)
             } else {
-              addTeam(name, color, imageFile, members)
+              addTeam(name, color, imageFile, members, icon)
             }
           }}
         />
@@ -556,6 +645,7 @@ function AppContent() {
             setSelectedChallenge(null)
           }}
           onSave={addPoints}
+          showAlert={showAlert}
         />
       )}
 
@@ -586,7 +676,15 @@ function AppContent() {
             showToast('Perfil atualizado!', 'success')
             window.location.reload()
           }}
+          showAlert={showAlert}
         />
+      )}
+
+      {user && profile?.role !== 'student' && (
+        <button className="fab-button" onClick={() => openPointsModal()} title="Atribuir Pontos">
+          <i className="fas fa-plus"></i>
+          <span className="fab-label">Atribuir Pontos</span>
+        </button>
       )}
 
       <div className="toast-container">
@@ -594,6 +692,15 @@ function AppContent() {
           <Toast key={toast.id} message={toast.message} type={toast.type} />
         ))}
       </div>
+
+      <PopupModal 
+        isOpen={popup.isOpen}
+        title={popup.title}
+        message={popup.message}
+        onConfirm={popup.onConfirm}
+        onCancel={popup.onCancel}
+        type={popup.type}
+      />
     </div>
   )
 }

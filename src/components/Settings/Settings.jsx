@@ -1,8 +1,27 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import './Settings.css'
 
-export default function Settings() {
+const iconOptions = [
+  { value: 'fa-star', label: 'Estrela' },
+  { value: 'fa-trophy', label: 'Troféu' },
+  { value: 'fa-medal', label: 'Medalha' },
+  { value: 'fa-crown', label: 'Coroa' },
+  { value: 'fa-bolt', label: 'Raio' },
+  { value: 'fa-heart', label: 'Coração' },
+  { value: 'fa-fire', label: 'Fogo' },
+  { value: 'fa-mountain', label: 'Montanha' },
+  { value: 'fa-tree', label: 'Árvore' },
+  { value: 'fa-sun', label: 'Sol' },
+  { value: 'fa-moon', label: 'Lua' },
+  { value: 'fa-cloud', label: 'Nuvem' },
+  { value: 'fa-leaf', label: 'Folha' },
+  { value: 'fa-plane', label: 'Avião' },
+  { value: 'fa-rocket', label: 'Foguete' },
+  { value: 'fa-globe', label: 'Globo' }
+]
+
+export default function Settings({ showAlert }) {
   const [settings, setSettings] = useState({
     name: 'Gincana MT',
     event_date: '',
@@ -10,13 +29,16 @@ export default function Settings() {
     location: '',
     objective: '',
     organization: '',
-    max_teams: 10,
     max_members_per_team: 5,
     theme: 'aviation',
-    registration_open: true
+    registration_open: true,
+    icon: 'fa-leaf',
+    logo_url: null
   })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [logoPreview, setLogoPreview] = useState(null)
+  const fileInputRef = useRef(null)
 
   useEffect(() => {
     fetchSettings()
@@ -30,7 +52,10 @@ export default function Settings() {
         .single()
       
       if (error && error.code !== 'PGRST116') throw error
-      if (data) setSettings(data)
+      if (data) {
+        setSettings(data)
+        if (data.logo_url) setLogoPreview(data.logo_url)
+      }
     } catch (error) {
       console.error('Erro ao buscar configurações:', error)
     } finally {
@@ -38,11 +63,26 @@ export default function Settings() {
     }
   }
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setLogoPreview(reader.result)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
+    let finalValue = value
+    if (type === 'checkbox') finalValue = checked
+    if (type === 'number') finalValue = parseInt(value) || 0
+
     setSettings(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: finalValue
     }))
   }
 
@@ -50,7 +90,21 @@ export default function Settings() {
     e.preventDefault()
     setSaving(true)
     try {
-      const payload = { ...settings }
+      let currentLogoUrl = settings.logo_url
+      const file = fileInputRef.current?.files[0]
+
+      if (file) {
+        const fileName = `logo_${Date.now()}.${file.name.split('.').pop()}`
+        const { error: uploadError } = await supabase.storage.from('bd').upload(fileName, file)
+        if (uploadError) throw uploadError
+
+        const { data: { publicUrl } } = supabase.storage.from('bd').getPublicUrl(fileName)
+        currentLogoUrl = publicUrl
+      }
+
+      const { id, ...settingsWithoutId } = settings
+      const payload = { ...settingsWithoutId, logo_url: currentLogoUrl }
+      
       if (!payload.event_date) payload.event_date = null
       if (!payload.event_time) payload.event_time = null
       
@@ -59,10 +113,10 @@ export default function Settings() {
         .upsert({ id: 1, ...payload })
       
       if (error) throw error
-      alert('Configurações salvas com sucesso!')
+      showAlert('Configurações salvas com sucesso!', 'Sucesso!')
     } catch (error) {
-      console.error('Erro ao salvar:', error)
-      alert('Erro ao salvar configurações. Verifique o console para mais detalhes.')
+      console.error('ERRO COMPLETO AO SALVAR:', error)
+      showAlert(`Erro ao salvar: ${error.message || 'Erro desconhecido'}. Verifique se a tabela event_settings existe e se as permissões RLS estão corretas.`, 'Erro')
     } finally {
       setSaving(false)
     }
@@ -86,6 +140,51 @@ export default function Settings() {
             <div className="form-group">
               <label>Organização</label>
               <input type="text" name="organization" value={settings.organization || ''} onChange={handleChange} />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Logo do Evento (Imagem ou Ícone)</label>
+            <div className="logo-options" style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
+              <div className="image-upload-section" style={{ flex: 1, minWidth: '200px' }}>
+                <label style={{ fontSize: '0.8rem', opacity: 0.7, marginBottom: '0.5rem', display: 'block' }}>Upload de Imagem</label>
+                <div className="image-upload-container">
+                  {logoPreview ? (
+                    <div className="image-preview">
+                      <img src={logoPreview} alt="Logo Preview" />
+                      <button type="button" className="remove-image" onClick={() => { setLogoPreview(null); setSettings(p => ({ ...p, logo_url: null })); if(fileInputRef.current) fileInputRef.current.value = ''; }}>
+                        <i className="fas fa-times"></i>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="image-upload-placeholder" onClick={() => fileInputRef.current?.click()}>
+                      <i className="fas fa-image"></i>
+                      <span>Clique para subir logo PNG</span>
+                    </div>
+                  )}
+                  <input type="file" ref={fileInputRef} accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
+                </div>
+              </div>
+
+              <div className="icon-selection-section" style={{ flex: 1, minWidth: '200px' }}>
+                <label style={{ fontSize: '0.8rem', opacity: 0.7, marginBottom: '0.5rem', display: 'block' }}>Ou escolha um Ícone</label>
+                <div className="icon-select" style={{ marginTop: '0', background: 'rgba(255,255,255,0.02)' }}>
+                  {iconOptions.map(opt => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      className={`icon-option ${settings.icon === opt.value && !logoPreview ? 'selected' : ''}`}
+                      onClick={() => {
+                        setSettings(prev => ({ ...prev, icon: opt.value, logo_url: null }))
+                        setLogoPreview(null)
+                      }}
+                      title={opt.label}
+                    >
+                      <i className={`fas ${opt.value}`}></i>
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 

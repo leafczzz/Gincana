@@ -32,13 +32,7 @@ export default function Header({ title, desc, onMenuClick, onQuickPoints, user, 
       </div>
       <div className="header-actions">
         {user ? (
-          <>
-            {profile?.role !== 'student' && (
-              <button className="btn btn-accent btn-sm" onClick={onQuickPoints}>
-                <i className="fas fa-plus"></i> <span className="hide-mobile">Pontos</span>
-              </button>
-            )}
-            <div className="user-menu" style={{ position: 'relative' }}>
+          <div className="user-menu" style={{ position: 'relative' }}>
               <div className="user-info">
                 <span className="user-name">{profile?.name}</span>
                 <span className="user-role">{getRoleLabel(profile?.role)}</span>
@@ -62,8 +56,7 @@ export default function Header({ title, desc, onMenuClick, onQuickPoints, user, 
                   </button>
                 </div>
               )}
-            </div>
-          </>
+          </div>
         ) : (
           <button className="btn btn-primary btn-sm" onClick={onLogin}>
             <i className="fas fa-sign-in-alt"></i> <span className="hide-mobile">Entrar</span>

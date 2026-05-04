@@ -1,4 +1,4 @@
-export default function Challenges({ challenges, onApply, onAddNew, onEdit, onRemove, hasTeams, userRole }) {
+export default function Challenges({ challenges, onApply, onAddNew, onEdit, onRemove, hasTeams, userRole, showAlert }) {
   const canManage = ['admin', 'professor'].includes(userRole)
   const canScore = ['admin', 'professor', 'supervisor'].includes(userRole)
   return (
@@ -27,7 +27,7 @@ export default function Challenges({ challenges, onApply, onAddNew, onEdit, onRe
                       className="btn btn-primary btn-sm" 
                       onClick={() => {
                         if (!hasTeams) {
-                          alert('Cadastre uma equipe primeiro!')
+                          showAlert('Cadastre uma equipe primeiro!')
                           return
                         }
                         onApply(c)

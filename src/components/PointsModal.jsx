@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-export default function PointsModal({ teams, challenges, selectedChallenge, onClose, onSave }) {
+export default function PointsModal({ teams, challenges, selectedChallenge, onClose, onSave, showAlert }) {
   const [activity, setActivity] = useState('custom')
   const [points, setPoints] = useState(10)
   const [winners, setWinners] = useState([])
@@ -63,7 +63,7 @@ export default function PointsModal({ teams, challenges, selectedChallenge, onCl
   const handleSubmit = (e) => {
     e.preventDefault()
     if (winners.length === 0 && participants.length === 0) {
-      alert("Selecione pelo menos uma equipe!")
+      showAlert("Selecione pelo menos uma equipe!")
       return
     }
 

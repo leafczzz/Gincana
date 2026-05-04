@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import './Users.css'
 
-export default function Users() {
+export default function Users({ showAlert, showConfirm }) {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -37,7 +37,7 @@ export default function Users() {
       setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u))
     } catch (error) {
       console.error('Erro ao atualizar papel:', error)
-      alert('Erro ao atualizar permissão')
+      showAlert('Erro ao atualizar permissão')
     }
   }
 
@@ -52,25 +52,25 @@ export default function Users() {
       setUsers(users.map(u => u.id === userId ? { ...u, status: newStatus } : u))
     } catch (error) {
       console.error('Erro ao atualizar status:', error)
-      alert('Erro ao atualizar status')
+      showAlert('Erro ao atualizar status')
     }
   }
 
   async function deleteUser(userId) {
-    if (!confirm('Deseja realmente apagar este usuário? Esta ação removerá o perfil dele do sistema.')) return
-    
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', userId)
-      
-      if (error) throw error
-      setUsers(users.filter(u => u.id !== userId))
-    } catch (error) {
-      console.error('Erro ao apagar usuário:', error)
-      alert('Erro ao apagar usuário')
-    }
+    showConfirm('Deseja realmente apagar este usuário? Esta ação removerá o perfil dele do sistema.', async () => {
+      try {
+        const { error } = await supabase
+          .from('profiles')
+          .delete()
+          .eq('id', userId)
+        
+        if (error) throw error
+        setUsers(users.filter(u => u.id !== userId))
+      } catch (error) {
+        console.error('Erro ao apagar usuário:', error)
+        showAlert('Erro ao apagar usuário')
+      }
+    })
   }
 
   const roleMap = {
@@ -118,10 +118,10 @@ export default function Users() {
                     </td>
                     <td>
                       <span style={{ 
-                        color: user.status === 'approved' ? '#2ecc71' : (user.status === 'blocked' ? '#e74c3c' : '#f1c40f'), 
+                        color: user.status === 'blocked' ? '#e74c3c' : (user.status === 'pending' ? '#f1c40f' : '#2ecc71'), 
                         fontWeight: 'bold' 
                       }}>
-                        {user.status === 'approved' ? 'Aprovado' : (user.status === 'blocked' ? 'Bloqueado' : 'Pendente')}
+                        {user.status === 'blocked' ? 'Bloqueado' : (user.status === 'pending' ? 'Pendente' : 'Ativo')}
                       </span>
                     </td>
                     <td style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
@@ -143,7 +143,7 @@ export default function Users() {
                         </button>
                       )}
                       
-                      {user.status === 'approved' && (
+                      {(user.status === 'approved' || !user.status) && (
                         <button className="btn btn-warning btn-sm" onClick={() => updateStatus(user.id, 'blocked')} title="Bloquear Login">
                           Bloquear
                         </button>

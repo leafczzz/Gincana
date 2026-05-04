@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 
-export default function ProfileModal({ profile, user, onClose, onUpdate }) {
+export default function ProfileModal({ profile, user, onClose, onUpdate, showAlert }) {
   const [name, setName] = useState(profile?.name || '')
   const [loading, setLoading] = useState(false)
 
@@ -20,7 +20,7 @@ export default function ProfileModal({ profile, user, onClose, onUpdate }) {
       onUpdate({ ...profile, name })
     } catch (error) {
       console.error('Erro ao atualizar perfil:', error.message)
-      alert('Erro ao atualizar perfil')
+      showAlert('Erro ao atualizar perfil')
     } finally {
       setLoading(false)
     }

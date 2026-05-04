@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import './Approvals.css'
 
-export default function Approvals() {
+export default function Approvals({ showAlert }) {
   const [pendingTeams, setPendingTeams] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -36,10 +36,10 @@ export default function Approvals() {
       if (error) throw error
       
       setPendingTeams(pendingTeams.filter(t => t.id !== teamId))
-      alert(`Equipe ${newStatus === 'approved' ? 'Aprovada' : 'Rejeitada'} com sucesso!`)
+      showAlert(`Equipe ${newStatus === 'approved' ? 'Aprovada' : 'Rejeitada'} com sucesso!`, 'Aprovação')
     } catch (error) {
       console.error('Erro ao atualizar status:', error)
-      alert('Erro ao atualizar status')
+      showAlert('Erro ao atualizar status')
     }
   }
 

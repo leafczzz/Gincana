@@ -48,7 +48,7 @@ export default function LandingPage({ onEnterApp, onViewDashboard }) {
       <div className="landing-page-overlay"></div>
       <div className="landing-content">
         {logoUrl ? (
-          <img src={logoUrl} alt="Logo do Evento" className="landing-logo" style={{ maxWidth: '180px', maxHeight: '180px', objectFit: 'contain', marginBottom: '1.5rem' }} />
+          <img src={logoUrl} alt="Logo do Evento" className="landing-logo" style={{ maxWidth: '11.25rem', maxHeight: '11.25rem', objectFit: 'contain', marginBottom: '1.5rem' }} />
         ) : (
           <div className="landing-icon" style={{ color: '#fff', fontSize: '4rem', marginBottom: '1.5rem' }}>
             <i className={`fas ${settings?.icon || 'fa-leaf'}`}></i>
@@ -78,9 +78,6 @@ export default function LandingPage({ onEnterApp, onViewDashboard }) {
         <div className="landing-actions" style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
           <button className="btn btn-primary btn-large" onClick={onEnterApp}>
             Acessar Sistema
-          </button>
-          <button className="btn btn-secondary btn-large" onClick={onViewDashboard} style={{ background: 'transparent', border: '2px solid var(--primary-color)', color: '#fff' }}>
-            Ver Placar Público
           </button>
         </div>
       </div>

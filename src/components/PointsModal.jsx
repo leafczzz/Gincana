@@ -125,7 +125,7 @@ export default function PointsModal({ teams, challenges, selectedChallenge, onCl
             <p style={{ fontSize: '0.85rem', color: '#888', marginBottom: '0.5rem' }}>
               Marque as equipes que participaram da atividade e as que venceram.
             </p>
-            <div className="team-checkbox-list" style={{ maxHeight: '250px', overflowY: 'auto', border: '1px solid var(--border-color, rgba(255,255,255,0.1))', padding: '0.5rem', borderRadius: '5px', background: 'transparent' }}>
+            <div className="team-checkbox-list" style={{ maxHeight: '15.625rem', overflowY: 'auto', border: '1px solid var(--border-color, rgba(255,255,255,0.1))', padding: '0.5rem', borderRadius: '0.3125rem', background: 'transparent' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border-color, rgba(255,255,255,0.1))' }}>
@@ -143,7 +143,7 @@ export default function PointsModal({ teams, challenges, selectedChallenge, onCl
                           type="checkbox" 
                           checked={participants.includes(t.id)}
                           onChange={() => toggleParticipant(t.id)}
-                          style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                          style={{ width: '1.125rem', height: '1.125rem', cursor: 'pointer' }}
                         />
                       </td>
                       <td style={{ padding: '0.5rem', textAlign: 'center' }}>
@@ -151,7 +151,7 @@ export default function PointsModal({ teams, challenges, selectedChallenge, onCl
                           type="checkbox" 
                           checked={winners.includes(t.id)}
                           onChange={() => toggleWinner(t.id)}
-                          style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                          style={{ width: '1.125rem', height: '1.125rem', cursor: 'pointer' }}
                         />
                       </td>
                     </tr>

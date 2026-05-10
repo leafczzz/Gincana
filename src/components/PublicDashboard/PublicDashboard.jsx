@@ -25,6 +25,9 @@ export default function PublicDashboard({ onBack }) {
       }
     }
     fetchTeams()
+
+    const intervalId = setInterval(fetchTeams, 5000)
+    return () => clearInterval(intervalId)
   }, [])
 
   if (loading) {

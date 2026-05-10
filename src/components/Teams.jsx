@@ -1,4 +1,8 @@
-export default function Teams({ teams, onRemove, onAddNew, onEdit, user, profile }) {
+import { useState } from 'react'
+import TeamDetailsModal from './TeamDetailsModal'
+
+export default function Teams({ teams, onRemove, onAddNew, onEdit, onUpdateTeam, onBlockTeam, user, profile }) {
+  const [detailsTeam, setDetailsTeam] = useState(null)
   const isAdminOrProf = ['admin', 'professor'].includes(profile?.role)
   const isStudentOrSupervisor = ['student', 'supervisor'].includes(profile?.role)
 
@@ -26,7 +30,7 @@ export default function Teams({ teams, onRemove, onAddNew, onEdit, user, profile
               const canEdit = isAdminOrProf || isLeader
 
               return (
-                <div className="stat-card team-card" key={t.id} style={{ borderTop: `4px solid ${t.color}` }}>
+                <div className="stat-card team-card" key={t.id} style={{ borderTop: `0.25rem solid ${t.color}` }}>
                   {t.image_url ? (
                     <div className="team-image">
                       <img src={t.image_url} alt={t.name} />
@@ -42,25 +46,45 @@ export default function Teams({ teams, onRemove, onAddNew, onEdit, user, profile
                   <p><strong>Líder:</strong> {t.profiles?.name || 'Não informado'}</p>
                   <p><strong>Status:</strong> {t.status === 'pending' ? 'Pendente' : t.status === 'approved' ? 'Aprovado' : 'Rejeitado'}</p>
                   <p className="score-badge">{t.score} PTS</p>
-                  
-                  {canEdit && (
-                    <div className="team-actions">
-                      <button className="btn-icon" onClick={() => onEdit(t)} title="Editar Equipe">
-                        <i className="fas fa-edit"></i>
-                      </button>
+                  <div className="team-actions">
+                    <button className="btn-icon text-info" onClick={() => setDetailsTeam(t)} title="Exibir Detalhes" style={{ color: '#3498db' }}>
+                      <i className="fas fa-info-circle"></i>
+                    </button>
+                    {canEdit && (
+                      <>
+                        <button className="btn-icon" onClick={() => onEdit(t)} title="Editar Equipe">
+                          <i className="fas fa-edit"></i>
+                        </button>
+                      {isAdminOrProf && (
+                        <button className="btn-icon text-warning" onClick={() => onBlockTeam(t.id)} title="Bloquear Equipe (Enviar para Aprovações)">
+                          <i className="fas fa-ban"></i>
+                        </button>
+                      )}
                       {(isAdminOrProf || isLeader) && (
                         <button className="btn-icon" onClick={() => onRemove(t.id)} title="Remover Equipe">
                           <i className="fas fa-trash"></i>
                         </button>
                       )}
-                    </div>
-                  )}
+                      </>
+                    )}
+                  </div>
                 </div>
               )
             })
           )}
         </div>
       </div>
+      {detailsTeam && (
+        <TeamDetailsModal 
+          team={detailsTeam}
+          userProfile={profile}
+          onClose={() => setDetailsTeam(null)}
+          onUpdateTeam={(t) => {
+            setDetailsTeam(t)
+            if (onUpdateTeam) onUpdateTeam(t)
+          }}
+        />
+      )}
     </section>
   )
 }

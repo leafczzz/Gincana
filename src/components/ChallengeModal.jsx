@@ -17,6 +17,7 @@ const iconOptions = [
 
 export default function ChallengeModal({ challenge, onClose, onSave }) {
   const [title, setTitle] = useState('')
+  const [location, setLocation] = useState('')
   const [description, setDescription] = useState('')
   const [winPoints, setWinPoints] = useState(10)
   const [consolationPoints, setConsolationPoints] = useState(5)
@@ -25,7 +26,17 @@ export default function ChallengeModal({ challenge, onClose, onSave }) {
   useEffect(() => {
     if (challenge) {
       setTitle(challenge.title || '')
-      setDescription(challenge.description || '')
+      let desc = challenge.description || ''
+      let loc = ''
+      if (desc.startsWith('[Local: ')) {
+        const endIdx = desc.indexOf(']')
+        if (endIdx > -1) {
+          loc = desc.substring(8, endIdx)
+          desc = desc.substring(endIdx + 1).replace(/^\n+/, '')
+        }
+      }
+      setLocation(loc)
+      setDescription(desc)
       setWinPoints(challenge.win_points || challenge.points || 10)
       setConsolationPoints(challenge.consolation_points || 5)
       setIcon(challenge.icon || 'fa-star')
@@ -35,7 +46,11 @@ export default function ChallengeModal({ challenge, onClose, onSave }) {
   const handleSubmit = (e) => {
     e.preventDefault()
     if (title.trim()) {
-      onSave(title.trim(), description.trim(), winPoints, consolationPoints, icon)
+      let finalDesc = description.trim()
+      if (location.trim()) {
+        finalDesc = `[Local: ${location.trim()}]\n\n${finalDesc}`
+      }
+      onSave(title.trim(), finalDesc, winPoints, consolationPoints, icon)
     }
   }
 
@@ -52,6 +67,15 @@ export default function ChallengeModal({ challenge, onClose, onSave }) {
               onChange={e => setTitle(e.target.value)}
               placeholder="Nome do desafio"
               required 
+            />
+          </div>
+          <div className="form-group">
+            <label>Local do Desafio</label>
+            <input 
+              type="text" 
+              value={location}
+              onChange={e => setLocation(e.target.value)}
+              placeholder="Onde acontecerá?"
             />
           </div>
           <div className="form-group">

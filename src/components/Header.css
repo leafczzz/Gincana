@@ -38,7 +38,7 @@
     color: var(--text-muted);
 }
 
-@media (min-width: 769px) {
+@media (min-width: 48.0625rem) {
     .hamburger {
         display: none;
     }
@@ -75,8 +75,8 @@
 }
 
 .user-avatar {
-    width: 38px;
-    height: 38px;
+    width: 2.375rem;
+    height: 2.375rem;
     border-radius: 50%;
     background: var(--primary);
     color: white;
@@ -92,7 +92,7 @@
 
 .user-avatar:hover {
     background: var(--primary-light);
-    box-shadow: 0 4px 10px rgba(45, 90, 39, 0.3);
+    box-shadow: 0 0.25rem 0.625rem rgba(45, 90, 39, 0.3);
 }
 
 .dropdown-menu {
@@ -102,7 +102,7 @@
     background: var(--surface);
     border-radius: var(--radius-sm);
     box-shadow: var(--shadow-lg);
-    width: 180px;
+    width: 11.25rem;
     overflow: hidden;
     animation: slideInDown 0.2s ease;
     border: 1px solid rgba(0,0,0,0.05);
@@ -134,11 +134,11 @@
 }
 
 @keyframes slideInDown {
-    from { transform: translateY(-10px); opacity: 0; }
+    from { transform: translateY(-0.625rem); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 48rem) {
     .user-info {
         display: none;
     }

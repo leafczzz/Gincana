@@ -15,7 +15,6 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
     password: '',
     confirmPassword: '',
     role: 'student',
-    registration: '',
     course: '',
   })
   const [error, setError] = useState('')
@@ -35,8 +34,7 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
   }
 
   const validateStep2 = () => {
-    if (formData.role !== 'admin' && !formData.registration.trim()) return 'Matrícula é obrigatória'
-    if (formData.role === 'student' && !formData.course.trim()) return 'Curso é obrigatório para alunos'
+    if (formData.role === 'student' && !formData.course) return 'Curso é obrigatório para alunos'
     return null
   }
 
@@ -67,7 +65,6 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
       email: formData.email,
       password: formData.password,
       name: formData.name,
-      registration: formData.registration,
       course: formData.role === 'student' ? formData.course : null,
       role: formData.role,
     })
@@ -101,7 +98,7 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
                   type="text"
                   value={formData.name}
                   onChange={e => updateField('name', e.target.value)}
-                  placeholder="Seu nome completo"
+                  placeholder="Ex: João da Silva"
                   required
                 />
               </div>
@@ -147,43 +144,23 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
           ) : (
             <>
               <div className="form-group">
-                <label>Tipo de Usuário</label>
+                <label>Curso</label>
                 <select
-                  value={formData.role}
-                  onChange={e => updateField('role', e.target.value)}
+                  value={formData.course}
+                  onChange={e => updateField('course', e.target.value)}
                   className="form-select"
+                  required
                 >
-                  {ROLE_OPTIONS.map(opt => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
+                  <option value="" disabled>Selecione seu curso...</option>
+                  <option value="Tec. Química">Tec. Química</option>
+                  <option value="Tec. Administração">Tec. Administração</option>
+                  <option value="Tec. Informática">Tec. Informática</option>
+                  <option value="Superior - Sistemas de Informação">Superior - Sistemas de Informação</option>
+                  <option value="Superior - Administração">Superior - Administração</option>
+                  <option value="Superior - Engenharia">Superior - Engenharia</option>
+                  <option value="Sou professor">Sou professor</option>
                 </select>
               </div>
-
-              {formData.role !== 'admin' && (
-                <div className="form-group">
-                  <label>Matrícula</label>
-                  <input
-                    type="text"
-                    value={formData.registration}
-                    onChange={e => updateField('registration', e.target.value)}
-                    placeholder="Sua matrícula"
-                    required={formData.role !== 'admin'}
-                  />
-                </div>
-              )}
-
-              {formData.role === 'student' && (
-                <div className="form-group">
-                  <label>Curso</label>
-                  <input
-                    type="text"
-                    value={formData.course}
-                    onChange={e => updateField('course', e.target.value)}
-                    placeholder="Seu curso"
-                    required
-                  />
-                </div>
-              )}
 
               <div className="modal-actions">
                 <button

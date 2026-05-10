@@ -1,6 +1,36 @@
+import { useState, useEffect } from 'react'
 import './FlightPanel.css'
 
 export default function FlightPanel({ teams, onBack }) {
+  const [customLabels, setCustomLabels] = useState({
+    idLabel: 'VOO',
+    idPrefix: 'GNC',
+    teamLabel: 'EQUIPE / DESTINO',
+    leaderLabel: 'LÍDER',
+    pointsLabel: 'PONTOS',
+    panelTitle: 'PAINEL DE VOO'
+  })
+  const [eventSettings, setEventSettings] = useState(null)
+
+  useEffect(() => {
+    const saved = localStorage.getItem('gincana_custom_labels')
+    if (saved) {
+      try {
+        setCustomLabels(prev => ({ ...prev, ...JSON.parse(saved) }))
+      } catch (e) {
+        console.error(e)
+      }
+    }
+    const savedEventSettings = localStorage.getItem('gincana_event_settings')
+    if (savedEventSettings) {
+      try {
+        setEventSettings(JSON.parse(savedEventSettings))
+      } catch (e) {
+        console.error(e)
+      }
+    }
+  }, [])
+
   return (
     <section id="flight-panel" className="section">
       <div className="flight-board">
@@ -11,7 +41,7 @@ export default function FlightPanel({ teams, onBack }) {
                 <i className="fas fa-arrow-left"></i>
               </button>
             )}
-            <h2><i className="fas fa-plane-departure"></i> PAINEL DE VOO - GINCANA</h2>
+            <h2><i className={`fas ${eventSettings?.icon || 'fa-plane-departure'}`}></i> {customLabels.panelTitle}</h2>
           </div>
           <div className="live-indicator">
             <span className="pulse-dot"></span>
@@ -23,10 +53,10 @@ export default function FlightPanel({ teams, onBack }) {
           <table className="flight-table">
             <thead>
               <tr>
-                <th>VOO</th>
-                <th>EQUIPE / DESTINO</th>
-                <th>LÍDER</th>
-                <th>PONTOS</th>
+                <th>{customLabels.idLabel}</th>
+                <th>{customLabels.teamLabel}</th>
+                <th>{customLabels.leaderLabel}</th>
+                <th>{customLabels.pointsLabel}</th>
                 <th>STATUS</th>
               </tr>
             </thead>
@@ -37,7 +67,24 @@ export default function FlightPanel({ teams, onBack }) {
                 </tr>
               ) : (
                 teams.map((t, index) => {
-                  const flightNumber = `GNC-${String(index + 1).padStart(3, '0')}`
+                  const flightNumber = `${customLabels.idPrefix}-${String(index + 1).padStart(3, '0')}`
+                  const maxScore = Math.max(...teams.map(team => team.score))
+                  const isLeader = t.score > 0 && t.score === maxScore
+                  const isWaiting = t.score === 0
+                  
+                  let statusText = 'DISPUTANDO'
+                  let dotClass = ''
+                  let statusColor = '#2ecc71'
+                  
+                  if (isLeader) {
+                    statusText = 'LIDERANDO'
+                    dotClass = 'leading'
+                    statusColor = '#e74c3c'
+                  } else if (isWaiting) {
+                    statusText = 'AGUARDANDO'
+                    dotClass = 'waiting'
+                    statusColor = '#f1c40f'
+                  }
                   
                   return (
                     <tr key={t.id}>
@@ -51,9 +98,9 @@ export default function FlightPanel({ teams, onBack }) {
                       <td className="points-col">
                         {String(t.score).padStart(4, '0')}
                       </td>
-                      <td className="status-col">
-                        <span className="pulse-dot-small"></span>
-                        ON TIME
+                      <td className="status-col" style={{ color: statusColor }}>
+                        <span className={`pulse-dot-small ${dotClass}`}></span>
+                        <span style={{ verticalAlign: 'middle' }}>{statusText}</span>
                       </td>
                     </tr>
                   )

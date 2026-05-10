@@ -20,15 +20,16 @@ import Settings from './components/Settings/Settings'
 import Approvals from './components/Approvals/Approvals'
 import ProfileModal from './components/ProfileModal'
 import FlightPanel from './components/FlightPanel'
+import FlightPlan from './components/FlightPlan/FlightPlan'
 import PopupModal from './components/PopupModal'
 import './App.css'
 
 const sections = {
   dashboard: { title: 'Dashboard', desc: 'Bem-vindo ao gerenciador da gincana.' },
   flightPanel: { title: 'Painel de Voo', desc: 'Acompanhe as equipes em tempo real.' },
+  flightPlan: { title: 'Plano de Voo', desc: 'Gere tickets de desafios com carimbo.' },
   teams: { title: 'Gerenciar Equipes', desc: 'Cadastre e visualize as equipes participantes.' },
   challenges: { title: 'Desafios', desc: 'Gerencie os desafios da gincana.' },
-  scoreboard: { title: 'Placar Geral', desc: 'Acompanhe a classificação em tempo real.' },
   users: { title: 'Gerenciar Usuários', desc: 'Gerencie os usuários do sistema.' },
   approvals: { title: 'Aprovações', desc: 'Aprove equipes pendentes.' },
   settings: { title: 'Configurações', desc: 'Configure o evento.' }
@@ -53,7 +54,16 @@ function AppContent() {
   const [profileModalOpen, setProfileModalOpen] = useState(false)
   const [publicView, setPublicView] = useState('landing')
   const [fullscreenFlight, setFullscreenFlight] = useState(false)
-  const [eventSettings, setEventSettings] = useState(null)
+  
+  const getInitialEventSettings = () => {
+    const saved = localStorage.getItem('gincana_event_settings')
+    if (saved) {
+      try { return JSON.parse(saved) } catch (e) { return null }
+    }
+    return null
+  }
+  const [eventSettings, setEventSettings] = useState(getInitialEventSettings())
+  
   const [allUsers, setAllUsers] = useState([])
   const [popup, setPopup] = useState({
     isOpen: false,
@@ -96,6 +106,36 @@ function AppContent() {
       fetchAllUsers()
     }
     fetchEventSettings()
+
+    const savedLabels = localStorage.getItem('gincana_custom_labels')
+    if (savedLabels) {
+      try {
+        const parsed = JSON.parse(savedLabels)
+        if (parsed.primaryColor) {
+          document.documentElement.style.setProperty('--primary-color', parsed.primaryColor)
+          document.documentElement.style.setProperty('--primary', parsed.primaryColor)
+        }
+      } catch (e) {
+        console.error(e)
+      }
+    }
+
+    const handleTextareaInput = (e) => {
+      if (e.target.tagName.toLowerCase() === 'textarea') {
+        e.target.style.height = 'auto'
+        e.target.style.height = e.target.scrollHeight + 'px'
+      }
+    }
+    document.addEventListener('input', handleTextareaInput)
+
+    const intervalId = setInterval(() => {
+      if (user) fetchTeams(false)
+    }, 5000)
+
+    return () => {
+      document.removeEventListener('input', handleTextareaInput)
+      clearInterval(intervalId)
+    }
   }, [user])
 
   async function fetchAllUsers() {
@@ -121,6 +161,7 @@ function AppContent() {
       
       if (data) {
         setEventSettings(data)
+        localStorage.setItem('gincana_event_settings', JSON.stringify(data))
         document.title = data.name || 'Gincana MT'
       }
     } catch (error) {
@@ -128,9 +169,9 @@ function AppContent() {
     }
   }
 
-  async function fetchTeams() {
+  async function fetchTeams(showLoading = true) {
     if (!supabase) {
-      setDataLoading(false)
+      if (showLoading) setDataLoading(false)
       return
     }
     
@@ -146,7 +187,7 @@ function AppContent() {
       console.error('Erro ao buscar equipes:', error.message)
       showToast('Erro ao conectar com o banco de dados', 'error')
     } finally {
-      setDataLoading(false)
+      if (showLoading) setDataLoading(false)
     }
   }
 
@@ -296,6 +337,25 @@ function AppContent() {
     })
   }
 
+  async function updateTeamStatus(id, newStatus) {
+    try {
+      const { data, error } = await supabase
+        .from('teams')
+        .update({ status: newStatus })
+        .eq('id', id)
+        .select('*, profiles!teams_leader_id_fkey(name)')
+        .single()
+      
+      if (error) throw error
+      
+      setTeams(prev => prev.map(t => t.id === id ? data : t))
+      showToast(`Status da equipe atualizado para ${newStatus === 'blocked' ? 'Bloqueado' : 'Aprovado'}.`, 'success')
+    } catch (error) {
+      console.error('Erro ao atualizar status:', error)
+      showToast('Erro ao atualizar status da equipe', 'error')
+    }
+  }
+
   async function addChallenge(title, description, winPoints, consolationPoints, icon) {
     const newChallenge = {
       title,
@@ -381,12 +441,22 @@ function AppContent() {
           } else if (isConsolationMode) {
             appliedPoints = consolationPoints
             appliedDesc = `${desc} (Participação)`
+          } else {
+            // For custom and penalty activities, participating is enough to receive the points
+            appliedPoints = points
           }
         }
 
         if (appliedPoints !== 0) {
           team.score += appliedPoints
-          team.history = [...(team.history || []), { points: appliedPoints, desc: appliedDesc, date: new Date().toLocaleDateString() }]
+          team.history = [...(team.history || []), { 
+            id: Date.now() + Math.random().toString(),
+            points: appliedPoints, 
+            desc: appliedDesc, 
+            date: new Date().toLocaleDateString(),
+            timestamp: Date.now(),
+            author: profile?.name || 'Desconhecido'
+          }]
           
           await supabase
             .from('teams')
@@ -464,15 +534,15 @@ function AppContent() {
         <div className="landing-page-overlay"></div>
         <div className="landing-content">
           {eventSettings?.logo_url ? (
-            <img src={eventSettings.logo_url} alt="Logo" style={{ maxWidth: '120px', marginBottom: '1rem' }} />
+            <img src={eventSettings.logo_url} alt="Logo" style={{ maxWidth: '7.5rem', marginBottom: '1rem' }} />
           ) : (
             <div className="landing-icon" style={{ color: '#fff' }}><i className={`fas ${eventSettings?.icon || 'fa-leaf'}`}></i></div>
           )}
-          <h1 className="landing-title" style={{ color: '#fff' }}>Perfil Não Encontrado</h1>
+          <h1 className="landing-title" style={{ color: '#fff' }}>Perfil ainda não criado</h1>
           <div style={{ fontSize: '3rem', color: '#ff4d4d', marginBottom: '1rem' }}>
             <i className="fas fa-user-slash"></i>
           </div>
-          <p style={{ color: '#fff', fontSize: '1.2rem', marginBottom: '2rem' }}>Seu perfil foi removido do sistema. Entre em contato com a organização.</p>
+          <p style={{ color: '#fff', fontSize: '1.2rem', marginBottom: '2rem' }}>Seu perfil ainda não foi criado ou está em processamento. (ou outra causa)</p>
           <button onClick={signOut} className="btn btn-primary btn-large">Sair</button>
         </div>
       </div>
@@ -486,7 +556,7 @@ function AppContent() {
         <div className="landing-page-overlay"></div>
         <div className="landing-content">
           {eventSettings?.logo_url ? (
-            <img src={eventSettings.logo_url} alt="Logo" style={{ maxWidth: '120px', marginBottom: '1rem' }} />
+            <img src={eventSettings.logo_url} alt="Logo" style={{ maxWidth: '7.5rem', marginBottom: '1rem' }} />
           ) : (
             <div className="landing-icon" style={{ color: '#fff' }}><i className={`fas ${eventSettings?.icon || 'fa-leaf'}`}></i></div>
           )}
@@ -508,7 +578,7 @@ function AppContent() {
         <div className="landing-page-overlay"></div>
         <div className="landing-content">
           {eventSettings?.logo_url ? (
-            <img src={eventSettings.logo_url} alt="Logo" style={{ maxWidth: '120px', marginBottom: '1rem' }} />
+            <img src={eventSettings.logo_url} alt="Logo" style={{ maxWidth: '7.5rem', marginBottom: '1rem' }} />
           ) : (
             <div className="landing-icon" style={{ color: '#fff' }}><i className={`fas ${eventSettings?.icon || 'fa-leaf'}`}></i></div>
           )}
@@ -573,7 +643,7 @@ function AppContent() {
           )}
           {currentSection === 'teams' && (
             <Teams 
-              teams={userRole === 'student' ? teams.filter(t => t.status === 'approved' || t.leader_id === user.id) : teams} 
+              teams={approvedTeams} 
               user={user}
               profile={profile}
               onRemove={removeTeam}
@@ -585,6 +655,10 @@ function AppContent() {
                 setTeamEdit(team)
                 setTeamModalOpen(true)
               }}
+              onUpdateTeam={(updatedTeam) => {
+                setTeams(prev => prev.map(t => t.id === updatedTeam.id ? updatedTeam : t))
+              }}
+              onBlockTeam={(teamId) => updateTeamStatus(teamId, 'blocked')}
             />
           )}
           {currentSection === 'challenges' && (
@@ -605,12 +679,10 @@ function AppContent() {
               showAlert={showAlert}
             />
           )}
-          {currentSection === 'scoreboard' && (
-            <Scoreboard teams={sortedTeams} />
-          )}
           {currentSection === 'users' && <Users showAlert={showAlert} showConfirm={showConfirm} />}
           {currentSection === 'settings' && <Settings showAlert={showAlert} />}
           {currentSection === 'approvals' && <Approvals showAlert={showAlert} />}
+          {currentSection === 'flightPlan' && <FlightPlan teams={approvedTeams} challenges={challenges} eventSettings={eventSettings} />}
         </div>
       </main>
 
@@ -619,6 +691,7 @@ function AppContent() {
           team={teamEdit}
           users={allUsers}
           currentUserProfile={profile}
+          eventSettings={eventSettings}
           onClose={() => {
             setTeamModalOpen(false)
             setTeamEdit(null)

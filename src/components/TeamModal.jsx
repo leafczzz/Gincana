@@ -20,7 +20,7 @@ const iconOptions = [
   { value: 'fa-globe', label: 'Globo' }
 ]
 
-export default function TeamModal({ team, users, currentUserProfile, onClose, onSave }) {
+export default function TeamModal({ team, users, currentUserProfile, eventSettings, onClose, onSave }) {
   const [preview, setPreview] = useState(null)
   const [members, setMembers] = useState(team?.members || [])
   const [leaderId, setLeaderId] = useState(team?.leader_id || currentUserProfile?.id)
@@ -52,6 +52,19 @@ export default function TeamModal({ team, users, currentUserProfile, onClose, on
     const file = fileInputRef.current?.files[0]
     
     if (name) {
+      const minMembers = eventSettings?.min_members_per_team || 1
+      const maxMembers = eventSettings?.max_members_per_team || 5
+
+      if (members.length < minMembers) {
+        alert(`A equipe deve ter no mínimo ${minMembers} membro(s).`)
+        return
+      }
+
+      if (members.length > maxMembers) {
+        alert(`A equipe pode ter no máximo ${maxMembers} membro(s).`)
+        return
+      }
+
       onSave(name, color, file, members, leaderId, icon)
     }
   }

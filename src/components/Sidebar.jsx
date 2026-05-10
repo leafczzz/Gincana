@@ -2,14 +2,14 @@ import './Sidebar.css'
 
 export default function Sidebar({ isOpen, onClose, currentSection, onNavigate, userRole, eventSettings }) {
   const allNavItems = [
-    { id: 'dashboard', icon: 'fa-chart-line', label: 'Dashboard', roles: ['admin', 'professor', 'supervisor', 'student'] },
-    { id: 'flightPanel', icon: 'fa-plane-departure', label: 'Painel de Voo', roles: ['admin', 'professor', 'supervisor', 'student'] },
+    { id: 'dashboard', icon: 'fa-chart-line', label: 'Dashboard', roles: ['admin', 'professor', 'supervisor'] },
+    { id: 'flightPanel', icon: 'fa-plane-departure', label: 'Painel de Voo', roles: ['admin', 'professor', 'supervisor'] },
     { id: 'teams', icon: 'fa-users', label: 'Equipes', roles: ['admin', 'professor', 'supervisor', 'student'] },
     { id: 'approvals', icon: 'fa-check-circle', label: 'Aprovações', roles: ['admin', 'professor'] },
-    { id: 'challenges', icon: 'fa-trophy', label: 'Desafios', roles: ['admin', 'professor', 'supervisor', 'student'] },
-    { id: 'scoreboard', icon: 'fa-list-ol', label: 'Placar Geral', roles: ['admin', 'professor', 'supervisor', 'student'] },
+    { id: 'challenges', icon: 'fa-trophy', label: 'Desafios', roles: ['admin', 'professor', 'supervisor'] },
     { id: 'users', icon: 'fa-user-cog', label: 'Usuários', roles: ['admin'] },
-    { id: 'settings', icon: 'fa-cog', label: 'Configurações', roles: ['admin'] }
+    { id: 'settings', icon: 'fa-cog', label: 'Configurações', roles: ['admin'] },
+    { id: 'flightPlan', icon: 'fa-ticket-alt', label: 'Plano de Voo', roles: ['admin', 'professor'] }
   ]
 
   const navItems = allNavItems.filter(item => item.roles.includes(userRole))
@@ -48,8 +48,8 @@ export default function Sidebar({ isOpen, onClose, currentSection, onNavigate, u
           ))}
         </nav>
 
-        <div className="sidebar-footer">
-          <p><small>Tema: Menos Telas, Mais Vida</small></p>
+        <div className="sidebar-footer" style={{ textAlign: 'center' }}>
+          <img src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/bd/logoiff.png`} alt="Logo IFF" style={{ maxWidth: '12rem', opacity: 0.8 }} />
         </div>
       </aside>
     </>

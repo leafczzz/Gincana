@@ -29,6 +29,7 @@ export default function Settings({ showAlert }) {
     location: '',
     objective: '',
     organization: '',
+    min_members_per_team: 1,
     max_members_per_team: 5,
     theme: 'aviation',
     registration_open: true,
@@ -40,8 +41,24 @@ export default function Settings({ showAlert }) {
   const [logoPreview, setLogoPreview] = useState(null)
   const fileInputRef = useRef(null)
 
+  const [customLabels, setCustomLabels] = useState({
+    idLabel: 'VOO',
+    idPrefix: 'GNC',
+    teamLabel: 'EQUIPE / DESTINO',
+    leaderLabel: 'LÍDER',
+    pointsLabel: 'PONTOS',
+    panelTitle: 'PAINEL DE VOO',
+    primaryColor: '#2ecc71'
+  })
+
   useEffect(() => {
     fetchSettings()
+    const savedLabels = localStorage.getItem('gincana_custom_labels')
+    if (savedLabels) {
+      try {
+        setCustomLabels(prev => ({ ...prev, ...JSON.parse(savedLabels) }))
+      } catch(e) { console.error(e) }
+    }
   }, [])
 
   async function fetchSettings() {
@@ -86,6 +103,11 @@ export default function Settings({ showAlert }) {
     }))
   }
 
+  const handleCustomLabelChange = (e) => {
+    const { name, value } = e.target
+    setCustomLabels(prev => ({ ...prev, [name]: value }))
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setSaving(true)
@@ -113,6 +135,11 @@ export default function Settings({ showAlert }) {
         .upsert({ id: 1, ...payload })
       
       if (error) throw error
+
+      localStorage.setItem('gincana_custom_labels', JSON.stringify(customLabels))
+      document.documentElement.style.setProperty('--primary-color', customLabels.primaryColor)
+      document.documentElement.style.setProperty('--primary', customLabels.primaryColor)
+
       showAlert('Configurações salvas com sucesso!', 'Sucesso!')
     } catch (error) {
       console.error('ERRO COMPLETO AO SALVAR:', error)
@@ -146,7 +173,7 @@ export default function Settings({ showAlert }) {
           <div className="form-group">
             <label>Logo do Evento (Imagem ou Ícone)</label>
             <div className="logo-options" style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
-              <div className="image-upload-section" style={{ flex: 1, minWidth: '200px' }}>
+              <div className="image-upload-section" style={{ flex: 1, minWidth: '12.5rem' }}>
                 <label style={{ fontSize: '0.8rem', opacity: 0.7, marginBottom: '0.5rem', display: 'block' }}>Upload de Imagem</label>
                 <div className="image-upload-container">
                   {logoPreview ? (
@@ -166,7 +193,7 @@ export default function Settings({ showAlert }) {
                 </div>
               </div>
 
-              <div className="icon-selection-section" style={{ flex: 1, minWidth: '200px' }}>
+              <div className="icon-selection-section" style={{ flex: 1, minWidth: '12.5rem' }}>
                 <label style={{ fontSize: '0.8rem', opacity: 0.7, marginBottom: '0.5rem', display: 'block' }}>Ou escolha um Ícone</label>
                 <div className="icon-select" style={{ marginTop: '0', background: 'rgba(255,255,255,0.02)' }}>
                   {iconOptions.map(opt => (
@@ -217,7 +244,11 @@ export default function Settings({ showAlert }) {
               <input type="number" name="max_teams" value={settings.max_teams || 10} onChange={handleChange} min="1" />
             </div>
             <div className="form-group">
-              <label>Máximo de Membros por Equipe</label>
+              <label>Mínimo de Membros</label>
+              <input type="number" name="min_members_per_team" value={settings.min_members_per_team || 1} onChange={handleChange} min="1" />
+            </div>
+            <div className="form-group">
+              <label>Máximo de Membros</label>
               <input type="number" name="max_members_per_team" value={settings.max_members_per_team || 5} onChange={handleChange} min="1" />
             </div>
           </div>
@@ -231,6 +262,45 @@ export default function Settings({ showAlert }) {
               onChange={handleChange} 
             />
             <label htmlFor="registration_open">Inscrições Abertas</label>
+          </div>
+
+          <h3 className="section-title">Aparência do Painel de Voo e Site</h3>
+          <div className="form-row">
+            <div className="form-group">
+              <label>Cor Principal (Botões e Destaques)</label>
+              <input type="color" name="primaryColor" value={customLabels.primaryColor} onChange={handleCustomLabelChange} style={{ height: '2.5rem', padding: '0', cursor: 'pointer' }} />
+            </div>
+            <div className="form-group">
+              <label>Título do Painel</label>
+              <input type="text" name="panelTitle" value={customLabels.panelTitle} onChange={handleCustomLabelChange} />
+            </div>
+          </div>
+          
+          <div className="form-row">
+            <div className="form-group">
+              <label>Prefixo do ID (ex: GNC)</label>
+              <input type="text" name="idPrefix" value={customLabels.idPrefix} onChange={handleCustomLabelChange} />
+            </div>
+            <div className="form-group">
+              <label>Rótulo da Coluna de ID</label>
+              <input type="text" name="idLabel" value={customLabels.idLabel} onChange={handleCustomLabelChange} />
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Rótulo "Equipe/Destino"</label>
+              <input type="text" name="teamLabel" value={customLabels.teamLabel} onChange={handleCustomLabelChange} />
+            </div>
+            <div className="form-group">
+              <label>Rótulo "Líder"</label>
+              <input type="text" name="leaderLabel" value={customLabels.leaderLabel} onChange={handleCustomLabelChange} />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Rótulo "Pontos" (ex: Milhas)</label>
+            <input type="text" name="pointsLabel" value={customLabels.pointsLabel} onChange={handleCustomLabelChange} />
           </div>
 
           <button type="submit" className="btn btn-primary" disabled={saving}>

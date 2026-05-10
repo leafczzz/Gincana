@@ -1,5 +1,6 @@
 export default function Dashboard({ teams, leaderScore, leader }) {
-  const sortedTeams = [...teams].sort((a, b) => b.score - a.score).slice(0, 3)
+  const sortedAll = [...teams].sort((a, b) => b.score - a.score)
+  const sortedTeams = sortedAll.slice(0, 3)
 
   return (
     <section id="dashboard" className="section active">
@@ -27,29 +28,44 @@ export default function Dashboard({ teams, leaderScore, leader }) {
         </div>
       </div>
 
-      <div className="data-card">
+      <div className="data-card" style={{ marginTop: '2rem' }}>
         <div className="table-header">
-          <h3>Top 3 Equipes</h3>
+          <h3>Placar Geral</h3>
         </div>
-        <div id="top-teams-list">
-          {sortedTeams.length === 0 ? (
-            <p className="text-muted">Nenhuma equipe cadastrada.</p>
-          ) : (
-            sortedTeams.map((t, index) => (
-              <div className="team-rank-item" key={t.id}>
-                <span className="rank-pos">#{index + 1}</span>
-                <div className="team-info">
-                  {t.image_url ? (
-                    <img src={t.image_url} alt={t.name} className="team-rank-image" />
-                  ) : (
-                    <div className="color-dot" style={{ background: t.color }}></div>
-                  )}
-                  <strong>{t.name}</strong>
-                </div>
-                <span className="rank-score">{t.score} pts</span>
-              </div>
-            ))
-          )}
+        <div className="table-container">
+          <table className="scoreboard-table" style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ background: 'rgba(0,0,0,0.05)' }}>
+                <th style={{ padding: '1rem', borderBottom: '1px solid rgba(0,0,0,0.1)' }}>Pos</th>
+                <th style={{ padding: '1rem', borderBottom: '1px solid rgba(0,0,0,0.1)' }}>Equipe</th>
+                <th style={{ padding: '1rem', borderBottom: '1px solid rgba(0,0,0,0.1)' }}>Pts</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sortedAll.length === 0 ? (
+                <tr>
+                  <td colSpan="3" className="text-muted" style={{ padding: '1rem' }}>Nenhuma equipe cadastrada.</td>
+                </tr>
+              ) : (
+                sortedAll.map((t, index) => (
+                  <tr key={t.id}>
+                    <td style={{ padding: '1rem', borderBottom: '1px solid rgba(0,0,0,0.05)' }}><strong>{index + 1}º</strong></td>
+                    <td style={{ padding: '1rem', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+                      <div className="team-info" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        {t.image_url ? (
+                          <img src={t.image_url} alt={t.name} className="team-rank-image" style={{ width: '2rem', height: '2rem', borderRadius: '50%', objectFit: 'cover' }} />
+                        ) : (
+                          <div className="color-dot" style={{ background: t.color, width: '1rem', height: '1rem', borderRadius: '50%' }}></div>
+                        )}
+                        {t.name}
+                      </div>
+                    </td>
+                    <td style={{ padding: '1rem', borderBottom: '1px solid rgba(0,0,0,0.05)' }}><strong>{t.score}</strong></td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </section>

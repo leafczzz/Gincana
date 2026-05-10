@@ -12,6 +12,7 @@ export function AuthProvider({ children }) {
     supabase?.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
       if (session?.user) {
+        setLoading(true)
         fetchProfile(session.user.id)
       } else {
         setLoading(false)
@@ -21,6 +22,7 @@ export function AuthProvider({ children }) {
     const { data: { subscription } } = supabase?.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
       if (session?.user) {
+        setLoading(true)
         fetchProfile(session.user.id)
       } else {
         setProfile(null)
@@ -48,7 +50,7 @@ export function AuthProvider({ children }) {
     }
   }
 
-  async function signUp({ email, password, name, registration, course, role }) {
+  async function signUp({ email, password, name, course, role }) {
     try {
       const { data: { user: newUser }, error: signUpError } = await supabase.auth.signUp({
         email,

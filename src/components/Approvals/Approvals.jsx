@@ -15,7 +15,8 @@ export default function Approvals({ showAlert }) {
       const { data, error } = await supabase
         .from('teams')
         .select('*, profiles!teams_leader_id_fkey(name)')
-        .eq('status', 'pending')
+        .neq('status', 'approved')
+        .order('status', { ascending: false })
       
       if (error) throw error
       setPendingTeams(data || [])
@@ -36,7 +37,7 @@ export default function Approvals({ showAlert }) {
       if (error) throw error
       
       setPendingTeams(pendingTeams.filter(t => t.id !== teamId))
-      showAlert(`Equipe ${newStatus === 'approved' ? 'Aprovada' : 'Rejeitada'} com sucesso!`, 'Aprovação')
+      showAlert(`Equipe ${newStatus === 'approved' ? 'Aprovada' : 'Bloqueada'} com sucesso!`, 'Aprovação')
     } catch (error) {
       console.error('Erro ao atualizar status:', error)
       showAlert('Erro ao atualizar status')
@@ -55,7 +56,7 @@ export default function Approvals({ showAlert }) {
         ) : (
           <div className="approvals-grid">
             {pendingTeams.map(team => (
-              <div key={team.id} className="approval-card" style={{ borderTop: `4px solid ${team.color}` }}>
+              <div key={team.id} className="approval-card" style={{ borderTop: `0.25rem solid ${team.color}` }}>
                 {team.image_url && <img src={team.image_url} alt={team.name} className="team-avatar" />}
                 <h3>{team.name}</h3>
                 <p><strong>Líder:</strong> {team.profiles?.name || 'Não informado'}</p>
@@ -63,9 +64,11 @@ export default function Approvals({ showAlert }) {
                   <button className="btn btn-primary" onClick={() => handleApproval(team.id, 'approved')}>
                     <i className="fas fa-check"></i> Aprovar
                   </button>
-                  <button className="btn btn-danger" onClick={() => handleApproval(team.id, 'rejected')}>
-                    <i className="fas fa-times"></i> Rejeitar
-                  </button>
+                  {team.status !== 'blocked' && (
+                    <button className="btn btn-danger" onClick={() => handleApproval(team.id, 'blocked')}>
+                      <i className="fas fa-ban"></i> Bloquear/Rejeitar
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

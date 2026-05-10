@@ -9,8 +9,27 @@
 
 .users-table th, .users-table td {
   padding: 1rem;
-  text-align: left;
+  text-align: center !important;
   border-bottom: 1px solid var(--border-color);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+@media (max-width: 48rem) {
+  .users-table th, .users-table td {
+    padding: 0.5rem;
+    font-size: 0.9rem;
+    max-width: 7.5rem;
+    word-break: break-word;
+  }
+  .users-table td.actions-cell-users {
+    max-width: none;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    align-items: center;
+  }
 }
 
 .users-table th {
@@ -21,7 +40,7 @@
 
 .role-badge {
   padding: 0.25rem 0.75rem;
-  border-radius: 15px;
+  border-radius: 0.9375rem;
   font-size: 0.85rem;
   font-weight: 600;
 }
@@ -34,7 +53,7 @@
 .role-select {
   padding: 0.5rem;
   border: 1px solid var(--border-color);
-  border-radius: 5px;
+  border-radius: 0.3125rem;
   background-color: white;
   font-family: inherit;
   font-size: 0.9rem;

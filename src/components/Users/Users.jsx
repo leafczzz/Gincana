@@ -5,6 +5,7 @@ import './Users.css'
 export default function Users({ showAlert, showConfirm }) {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
+  const [userInfoModal, setUserInfoModal] = useState(null)
 
   useEffect(() => {
     fetchUsers()
@@ -94,37 +95,21 @@ export default function Users({ showAlert, showConfirm }) {
             <table className="users-table">
               <thead>
                 <tr>
-                  <th>Nome</th>
-                  <th>Email</th>
-                  <th>Matrícula/Curso</th>
-                  <th>Papel</th>
-                  <th>Status</th>
-                  <th>Ações</th>
+                  <th style={{ width: '50%' }}>Nome</th>
+                  <th style={{ width: '10%', textAlign: 'center' }}>Info</th>
+                  <th style={{ width: '40%', textAlign: 'center' }}>Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {users.map(user => (
                   <tr key={user.id}>
                     <td>{user.name}</td>
-                    <td>{user.email}</td>
-                    <td>
-                      {user.registration}
-                      {user.course && ` - ${user.course}`}
+                    <td style={{ textAlign: 'center' }}>
+                      <button className="btn-icon text-info" onClick={() => setUserInfoModal(user)} style={{ color: '#3498db' }}>
+                        <i className="fas fa-info-circle"></i>
+                      </button>
                     </td>
-                    <td>
-                      <span className={`role-badge role-${user.role}`}>
-                        {roleMap[user.role] || user.role}
-                      </span>
-                    </td>
-                    <td>
-                      <span style={{ 
-                        color: user.status === 'blocked' ? '#e74c3c' : (user.status === 'pending' ? '#f1c40f' : '#2ecc71'), 
-                        fontWeight: 'bold' 
-                      }}>
-                        {user.status === 'blocked' ? 'Bloqueado' : (user.status === 'pending' ? 'Pendente' : 'Ativo')}
-                      </span>
-                    </td>
-                    <td style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <td className="actions-cell-users" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
                       <select 
                         className="role-select"
                         value={user.role} 
@@ -171,6 +156,22 @@ export default function Users({ showAlert, showConfirm }) {
           </div>
         )}
       </div>
+
+      {userInfoModal && (
+        <div className="blur-modal-overlay" onClick={() => setUserInfoModal(null)}>
+          <div className="blur-modal-content" onClick={e => e.stopPropagation()}>
+            <h3>Detalhes do Usuário</h3>
+            <p><strong>Nome:</strong> {userInfoModal.name}</p>
+            <p><strong>Email:</strong> {userInfoModal.email}</p>
+            <p><strong>Curso:</strong> {userInfoModal.course || 'Não informado'}</p>
+            <p><strong>Papel:</strong> <span className={`role-badge role-${userInfoModal.role}`}>{roleMap[userInfoModal.role] || userInfoModal.role}</span></p>
+            <p><strong>Status:</strong> <span style={{ color: userInfoModal.status === 'blocked' ? '#e74c3c' : (userInfoModal.status === 'pending' ? '#f1c40f' : '#2ecc71') }}>
+              {userInfoModal.status === 'blocked' ? 'Bloqueado' : (userInfoModal.status === 'pending' ? 'Pendente' : 'Ativo')}
+            </span></p>
+            <button className="btn btn-primary" onClick={() => setUserInfoModal(null)} style={{ marginTop: '1rem', width: '100%' }}>Fechar</button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

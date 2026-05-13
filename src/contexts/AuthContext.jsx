@@ -8,8 +8,11 @@ export function AuthProvider({ children }) {
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
 
+  const [isRegistering, setIsRegistering] = useState(false)
+
   useEffect(() => {
     supabase?.auth.getSession().then(({ data: { session } }) => {
+      if (isRegistering) return
       setUser(session?.user ?? null)
       if (session?.user) {
         setLoading(true)
@@ -20,6 +23,7 @@ export function AuthProvider({ children }) {
     })
 
     const { data: { subscription } } = supabase?.auth.onAuthStateChange((_event, session) => {
+      if (isRegistering) return
       setUser(session?.user ?? null)
       if (session?.user) {
         setLoading(true)
@@ -51,6 +55,7 @@ export function AuthProvider({ children }) {
   }
 
   async function signUp({ email, password, name, course, role }) {
+    setIsRegistering(true)
     try {
       const { data: { user: newUser }, error: signUpError } = await supabase.auth.signUp({
         email,
@@ -63,7 +68,6 @@ export function AuthProvider({ children }) {
         id: newUser.id,
         name,
         email,
-        registration,
         course,
         role,
         status: 'pending'
@@ -71,9 +75,15 @@ export function AuthProvider({ children }) {
 
       if (profileError) throw profileError
 
+      // Importante: Deslogar após o cadastro para evitar auto-login 
+      // e garantir que o usuário veja a mensagem de sucesso antes de tentar logar.
+      await supabase.auth.signOut()
+
       return { error: null }
     } catch (error) {
       return { error }
+    } finally {
+      setIsRegistering(false)
     }
   }
 

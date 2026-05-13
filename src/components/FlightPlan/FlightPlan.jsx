@@ -1,18 +1,57 @@
 import { useState, useRef, useEffect } from 'react'
+import { supabase } from '../../lib/supabase'
 import './FlightPlan.css'
 
 export default function FlightPlan({ teams, challenges, eventSettings }) {
   const [selectedTeamId, setSelectedTeamId] = useState('')
   const [generatedPlan, setGeneratedPlan] = useState(null)
-  const [customLabels, setCustomLabels] = useState({})
+  const [customLabels, setCustomLabels] = useState(null)
+  const [loading, setLoading] = useState(true)
   const printRef = useRef(null)
 
   useEffect(() => {
-    const saved = localStorage.getItem('gincana_custom_labels')
-    if (saved) {
-      try { setCustomLabels(JSON.parse(saved)) } catch(e){}
+    async function fetchLabels() {
+      try {
+        const { data, error } = await supabase
+          .from('event_settings')
+          .select('id_prefix, id_label, team_label, leader_label, points_label, panel_title, primary_color')
+          .single()
+
+        if (error && error.code !== 'PGRST116') throw error
+        
+        if (data) {
+          setCustomLabels({
+            idPrefix: data.id_prefix,
+            idLabel: data.id_label,
+            teamLabel: data.team_label,
+            leaderLabel: data.leader_label,
+            pointsLabel: data.points_label,
+            panelTitle: data.panel_title
+          })
+        } else {
+          // Fallback para localStorage legado
+          const saved = localStorage.getItem('gincana_custom_labels')
+          if (saved) {
+            try { 
+              setCustomLabels(JSON.parse(saved)) 
+            } catch(e) {
+              setCustomLabels({}) 
+            }
+          } else {
+            setCustomLabels({})
+          }
+        }
+      } catch (err) {
+        console.error('Erro ao buscar labels do plano de voo:', err)
+        setCustomLabels({})
+      } finally {
+        setLoading(false)
+      }
     }
+    fetchLabels()
   }, [])
+
+  if (loading || !customLabels) return <div className="loading-state">Preparando planos de voo...</div>
 
   const handleGenerate = () => {
     if (!selectedTeamId) return

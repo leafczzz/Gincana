@@ -21,44 +21,39 @@ const iconOptions = [
   { value: 'fa-globe', label: 'Globo' }
 ]
 
+const defaultSettings = {
+  name: 'Gincana MT',
+  event_date: '',
+  event_time: '',
+  location: '',
+  objective: '',
+  organization: '',
+  min_members_per_team: 1,
+  max_members_per_team: 5,
+  max_teams: 10,
+  theme: 'aviation',
+  registration_open: true,
+  icon: 'fa-leaf',
+  logo_url: null,
+  // Campos de aparência (antes no localStorage)
+  primary_color: '#2ecc71',
+  panel_title: 'PAINEL DE VOO',
+  id_prefix: 'GNC',
+  id_label: 'VOO',
+  team_label: 'EQUIPE / DESTINO',
+  leader_label: 'LÍDER',
+  points_label: 'PONTOS'
+}
+
 export default function Settings({ showAlert }) {
-  const [settings, setSettings] = useState({
-    name: 'Gincana MT',
-    event_date: '',
-    event_time: '',
-    location: '',
-    objective: '',
-    organization: '',
-    min_members_per_team: 1,
-    max_members_per_team: 5,
-    theme: 'aviation',
-    registration_open: true,
-    icon: 'fa-leaf',
-    logo_url: null
-  })
+  const [settings, setSettings] = useState(defaultSettings)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [logoPreview, setLogoPreview] = useState(null)
   const fileInputRef = useRef(null)
 
-  const [customLabels, setCustomLabels] = useState({
-    idLabel: 'VOO',
-    idPrefix: 'GNC',
-    teamLabel: 'EQUIPE / DESTINO',
-    leaderLabel: 'LÍDER',
-    pointsLabel: 'PONTOS',
-    panelTitle: 'PAINEL DE VOO',
-    primaryColor: '#2ecc71'
-  })
-
   useEffect(() => {
     fetchSettings()
-    const savedLabels = localStorage.getItem('gincana_custom_labels')
-    if (savedLabels) {
-      try {
-        setCustomLabels(prev => ({ ...prev, ...JSON.parse(savedLabels) }))
-      } catch(e) { console.error(e) }
-    }
   }, [])
 
   async function fetchSettings() {
@@ -67,11 +62,16 @@ export default function Settings({ showAlert }) {
         .from('event_settings')
         .select('*')
         .single()
-      
+
       if (error && error.code !== 'PGRST116') throw error
       if (data) {
-        setSettings(data)
+        setSettings(prev => ({ ...defaultSettings, ...data }))
         if (data.logo_url) setLogoPreview(data.logo_url)
+        // Aplicar cor principal ao carregar
+        if (data.primary_color) {
+          document.documentElement.style.setProperty('--primary-color', data.primary_color)
+          document.documentElement.style.setProperty('--primary', data.primary_color)
+        }
       }
     } catch (error) {
       console.error('Erro ao buscar configurações:', error)
@@ -84,9 +84,7 @@ export default function Settings({ showAlert }) {
     const file = e.target.files[0]
     if (file) {
       const reader = new FileReader()
-      reader.onloadend = () => {
-        setLogoPreview(reader.result)
-      }
+      reader.onloadend = () => setLogoPreview(reader.result)
       reader.readAsDataURL(file)
     }
   }
@@ -97,15 +95,13 @@ export default function Settings({ showAlert }) {
     if (type === 'checkbox') finalValue = checked
     if (type === 'number') finalValue = parseInt(value) || 0
 
-    setSettings(prev => ({
-      ...prev,
-      [name]: finalValue
-    }))
-  }
+    setSettings(prev => ({ ...prev, [name]: finalValue }))
 
-  const handleCustomLabelChange = (e) => {
-    const { name, value } = e.target
-    setCustomLabels(prev => ({ ...prev, [name]: value }))
+    // Preview instantâneo da cor principal
+    if (name === 'primary_color') {
+      document.documentElement.style.setProperty('--primary-color', value)
+      document.documentElement.style.setProperty('--primary', value)
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -124,26 +120,34 @@ export default function Settings({ showAlert }) {
         currentLogoUrl = publicUrl
       }
 
-      const { id, ...settingsWithoutId } = settings
-      const payload = { ...settingsWithoutId, logo_url: currentLogoUrl }
-      
+      const { id, updated_at, ...rest } = settings
+      const payload = { ...rest, logo_url: currentLogoUrl }
+
       if (!payload.event_date) payload.event_date = null
       if (!payload.event_time) payload.event_time = null
-      
+
       const { error } = await supabase
         .from('event_settings')
         .upsert({ id: 1, ...payload })
-      
+
       if (error) throw error
 
-      localStorage.setItem('gincana_custom_labels', JSON.stringify(customLabels))
-      document.documentElement.style.setProperty('--primary-color', customLabels.primaryColor)
-      document.documentElement.style.setProperty('--primary', customLabels.primaryColor)
+      // Limpar localStorage legado (migração)
+      localStorage.removeItem('gincana_custom_labels')
 
-      showAlert('Configurações salvas com sucesso!', 'Sucesso!')
+      // Aplicar cor imediatamente
+      if (payload.primary_color) {
+        document.documentElement.style.setProperty('--primary-color', payload.primary_color)
+        document.documentElement.style.setProperty('--primary', payload.primary_color)
+      }
+
+      showAlert('Configurações salvas com sucesso no banco de dados!', 'Sucesso!')
     } catch (error) {
-      console.error('ERRO COMPLETO AO SALVAR:', error)
-      showAlert(`Erro ao salvar: ${error.message || 'Erro desconhecido'}. Verifique se a tabela event_settings existe e se as permissões RLS estão corretas.`, 'Erro')
+      console.error('ERRO AO SALVAR:', error)
+      showAlert(
+        `Erro ao salvar: ${error.message || 'Erro desconhecido'}. Verifique se a tabela event_settings existe e se as permissões RLS estão corretas.`,
+        'Erro'
+      )
     } finally {
       setSaving(false)
     }
@@ -157,7 +161,7 @@ export default function Settings({ showAlert }) {
         <div className="card-header">
           <h2>Configurações do Evento</h2>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="settings-form">
           <div className="form-row">
             <div className="form-group">
@@ -179,7 +183,15 @@ export default function Settings({ showAlert }) {
                   {logoPreview ? (
                     <div className="image-preview">
                       <img src={logoPreview} alt="Logo Preview" />
-                      <button type="button" className="remove-image" onClick={() => { setLogoPreview(null); setSettings(p => ({ ...p, logo_url: null })); if(fileInputRef.current) fileInputRef.current.value = ''; }}>
+                      <button
+                        type="button"
+                        className="remove-image"
+                        onClick={() => {
+                          setLogoPreview(null)
+                          setSettings(p => ({ ...p, logo_url: null }))
+                          if (fileInputRef.current) fileInputRef.current.value = ''
+                        }}
+                      >
                         <i className="fas fa-times"></i>
                       </button>
                     </div>
@@ -237,7 +249,7 @@ export default function Settings({ showAlert }) {
           </div>
 
           <h3 className="section-title">Regras de Inscrição</h3>
-          
+
           <div className="form-row">
             <div className="form-group">
               <label>Máximo de Equipes</label>
@@ -254,53 +266,70 @@ export default function Settings({ showAlert }) {
           </div>
 
           <div className="form-group checkbox-group">
-            <input 
-              type="checkbox" 
-              id="registration_open" 
-              name="registration_open" 
-              checked={settings.registration_open !== false} 
-              onChange={handleChange} 
+            <input
+              type="checkbox"
+              id="registration_open"
+              name="registration_open"
+              checked={settings.registration_open !== false}
+              onChange={handleChange}
             />
             <label htmlFor="registration_open">Inscrições Abertas</label>
           </div>
 
           <h3 className="section-title">Aparência do Painel de Voo e Site</h3>
+
           <div className="form-row">
             <div className="form-group">
               <label>Cor Principal (Botões e Destaques)</label>
-              <input type="color" name="primaryColor" value={customLabels.primaryColor} onChange={handleCustomLabelChange} style={{ height: '2.5rem', padding: '0', cursor: 'pointer' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <input
+                  type="color"
+                  name="primary_color"
+                  value={settings.primary_color || '#2ecc71'}
+                  onChange={handleChange}
+                  style={{ height: '2.5rem', width: '3.5rem', padding: '0.1rem', cursor: 'pointer', border: 'none', borderRadius: '6px' }}
+                />
+                <input
+                  type="text"
+                  name="primary_color"
+                  value={settings.primary_color || '#2ecc71'}
+                  onChange={handleChange}
+                  style={{ flex: 1, fontFamily: 'monospace', fontSize: '0.95rem' }}
+                  placeholder="#2ecc71"
+                />
+              </div>
             </div>
             <div className="form-group">
               <label>Título do Painel</label>
-              <input type="text" name="panelTitle" value={customLabels.panelTitle} onChange={handleCustomLabelChange} />
+              <input type="text" name="panel_title" value={settings.panel_title || 'PAINEL DE VOO'} onChange={handleChange} />
             </div>
           </div>
-          
+
           <div className="form-row">
             <div className="form-group">
               <label>Prefixo do ID (ex: GNC)</label>
-              <input type="text" name="idPrefix" value={customLabels.idPrefix} onChange={handleCustomLabelChange} />
+              <input type="text" name="id_prefix" value={settings.id_prefix || 'GNC'} onChange={handleChange} />
             </div>
             <div className="form-group">
               <label>Rótulo da Coluna de ID</label>
-              <input type="text" name="idLabel" value={customLabels.idLabel} onChange={handleCustomLabelChange} />
+              <input type="text" name="id_label" value={settings.id_label || 'VOO'} onChange={handleChange} />
             </div>
           </div>
 
           <div className="form-row">
             <div className="form-group">
               <label>Rótulo "Equipe/Destino"</label>
-              <input type="text" name="teamLabel" value={customLabels.teamLabel} onChange={handleCustomLabelChange} />
+              <input type="text" name="team_label" value={settings.team_label || 'EQUIPE / DESTINO'} onChange={handleChange} />
             </div>
             <div className="form-group">
               <label>Rótulo "Líder"</label>
-              <input type="text" name="leaderLabel" value={customLabels.leaderLabel} onChange={handleCustomLabelChange} />
+              <input type="text" name="leader_label" value={settings.leader_label || 'LÍDER'} onChange={handleChange} />
             </div>
           </div>
 
           <div className="form-group">
             <label>Rótulo "Pontos" (ex: Milhas)</label>
-            <input type="text" name="pointsLabel" value={customLabels.pointsLabel} onChange={handleCustomLabelChange} />
+            <input type="text" name="points_label" value={settings.points_label || 'PONTOS'} onChange={handleChange} />
           </div>
 
           <button type="submit" className="btn btn-primary" disabled={saving}>

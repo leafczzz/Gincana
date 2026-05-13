@@ -7,7 +7,7 @@ const ROLE_OPTIONS = [
   { value: 'professor', label: 'Professor' }
 ]
 
-export default function RegisterModal({ onClose, onSwitchToLogin }) {
+export default function RegisterModal({ onClose, onSwitchToLogin, showAlert }) {
   const [step, setStep] = useState(1)
   const [formData, setFormData] = useState({
     name: '',

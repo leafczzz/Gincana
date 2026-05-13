@@ -40,6 +40,24 @@ function AppContent() {
   const [currentSection, setCurrentSection] = useState('dashboard')
   const [showLogin, setShowLogin] = useState(false)
   const [showRegister, setShowRegister] = useState(false)
+  
+  // Wrapper para trocar de seção limpando alertas
+  const handleSectionChange = (section) => {
+    setPopup(prev => ({ ...prev, isOpen: false }))
+    setCurrentSection(section)
+  }
+
+  // Wrapper para abrir login limpando alertas
+  const handleShowLogin = (show) => {
+    setPopup(prev => ({ ...prev, isOpen: false }))
+    setShowLogin(show)
+  }
+
+  // Wrapper para abrir cadastro limpando alertas
+  const handleShowRegister = (show) => {
+    setPopup(prev => ({ ...prev, isOpen: false }))
+    setShowRegister(show)
+  }
   const [teams, setTeams] = useState([])
   const [challenges, setChallenges] = useState([])
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -100,25 +118,16 @@ function AppContent() {
   }
 
   useEffect(() => {
+    // Limpeza imediata de dados legados
+    localStorage.removeItem('gincana_custom_labels');
+    localStorage.removeItem('gincana_event_settings');
+
     if (user) {
       fetchTeams()
       fetchChallenges()
       fetchAllUsers()
     }
     fetchEventSettings()
-
-    const savedLabels = localStorage.getItem('gincana_custom_labels')
-    if (savedLabels) {
-      try {
-        const parsed = JSON.parse(savedLabels)
-        if (parsed.primaryColor) {
-          document.documentElement.style.setProperty('--primary-color', parsed.primaryColor)
-          document.documentElement.style.setProperty('--primary', parsed.primaryColor)
-        }
-      } catch (e) {
-        console.error(e)
-      }
-    }
 
     const handleTextareaInput = (e) => {
       if (e.target.tagName.toLowerCase() === 'textarea') {
@@ -161,8 +170,13 @@ function AppContent() {
       
       if (data) {
         setEventSettings(data)
-        localStorage.setItem('gincana_event_settings', JSON.stringify(data))
         document.title = data.name || 'Gincana MT'
+        // Aplicar cor principal do BD em toda a aplicação
+        if (data.primary_color) {
+          document.documentElement.style.setProperty('--primary-color', data.primary_color)
+          document.documentElement.style.setProperty('--primary', data.primary_color)
+          document.documentElement.style.setProperty('--primary-light', data.primary_color + 'cc') // Adiciona transparência para o hover
+        }
       }
     } catch (error) {
       console.error('Erro ao buscar configurações do evento:', error)
@@ -486,6 +500,17 @@ function AppContent() {
   const leader = sortedTeams.length > 0 ? sortedTeams[0].name : '---'
   const leaderScore = sortedTeams.length > 0 ? sortedTeams[0].score : 0
 
+  if (loading && !profile) {
+    return (
+      <div className="loading-screen" style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a', color: '#fff' }}>
+        <div className="landing-icon pulse" style={{ fontSize: '3rem', marginBottom: '2rem' }}>
+          <i className={`fas ${eventSettings?.icon || 'fa-leaf'}`}></i>
+        </div>
+        <p style={{ fontSize: '1.2rem', letterSpacing: '1px' }}>SINCRONIZANDO...</p>
+      </div>
+    )
+  }
+
   if (!user) {
     if (publicView === 'dashboard') {
       return <PublicDashboard onBack={() => setPublicView('landing')} />
@@ -493,24 +518,24 @@ function AppContent() {
     return (
       <>
         <LandingPage 
-          onEnterApp={() => setShowLogin(true)} 
+          onEnterApp={() => handleShowLogin(true)} 
           onViewDashboard={() => setPublicView('dashboard')} 
         />
         {showLogin && (
           <LoginModal
-            onClose={() => setShowLogin(false)}
+            onClose={() => handleShowLogin(false)}
             onSwitchToRegister={() => {
-              setShowLogin(false)
-              setShowRegister(true)
+              handleShowLogin(false)
+              handleShowRegister(true)
             }}
           />
         )}
         {showRegister && (
           <RegisterModal
-            onClose={() => setShowRegister(false)}
+            onClose={() => handleShowRegister(false)}
             onSwitchToLogin={() => {
-              setShowRegister(false)
-              setShowLogin(true)
+              handleShowRegister(false)
+              handleShowLogin(true)
             }}
             showAlert={showAlert}
           />
@@ -607,7 +632,7 @@ function AppContent() {
           if (section === 'flightPanel') {
             setFullscreenFlight(true)
           } else {
-            setCurrentSection(section)
+            handleSectionChange(section)
           }
         }}
         userRole={userRole}
@@ -628,7 +653,7 @@ function AppContent() {
           }}
           user={user}
           profile={profile}
-          onLogin={() => setShowLogin(true)}
+          onLogin={() => handleShowLogin(true)}
           onLogout={signOut}
           onProfile={() => setProfileModalOpen(true)}
         />
@@ -751,7 +776,7 @@ function AppContent() {
         />
       )}
 
-      {user && profile?.role !== 'student' && (
+      {user && profile && profile.role !== 'student' && (
         <button className="fab-button" onClick={() => openPointsModal()} title="Atribuir Pontos">
           <i className="fas fa-plus"></i>
           <span className="fab-label">Atribuir Pontos</span>

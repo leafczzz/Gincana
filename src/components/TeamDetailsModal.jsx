@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import './TeamDetailsModal.css'
 
-export default function TeamDetailsModal({ team, onClose, userProfile, onUpdateTeam }) {
+export default function TeamDetailsModal({ team, onClose, userProfile, onUpdateTeam, eventSettings, showConfirm }) {
   const isAdminOrProf = ['admin', 'professor'].includes(userProfile?.role)
   const [history, setHistory] = useState(team.history || [])
   const [editingLogId, setEditingLogId] = useState(null)
@@ -45,24 +45,24 @@ export default function TeamDetailsModal({ team, onClose, userProfile, onUpdateT
     }
   }
 
-  const deleteLog = async (logId) => {
-    if (!window.confirm('Tem certeza que deseja remover este lançamento?')) return
-    
-    const newHistory = history.filter(log => log.id !== logId)
-    const scoreDiff = newHistory.reduce((acc, log) => acc + log.points, 0)
+  const deleteLog = (logId) => {
+    showConfirm('Tem certeza que deseja remover este lançamento?', async () => {
+      const newHistory = history.filter(log => log.id !== logId)
+      const scoreDiff = newHistory.reduce((acc, log) => acc + log.points, 0)
 
-    try {
-      await supabase
-        .from('teams')
-        .update({ history: newHistory, score: scoreDiff })
-        .eq('id', team.id)
-      
-      setHistory(newHistory)
-      if (onUpdateTeam) onUpdateTeam({ ...team, history: newHistory, score: scoreDiff })
-    } catch (error) {
-      console.error('Erro ao deletar log:', error)
-      alert('Erro ao deletar o lançamento.')
-    }
+      try {
+        await supabase
+          .from('teams')
+          .update({ history: newHistory, score: scoreDiff })
+          .eq('id', team.id)
+        
+        setHistory(newHistory)
+        if (onUpdateTeam) onUpdateTeam({ ...team, history: newHistory, score: scoreDiff })
+      } catch (error) {
+        console.error('Erro ao deletar log:', error)
+        alert('Erro ao deletar o lançamento.')
+      }
+    })
   }
 
   return (
@@ -79,7 +79,10 @@ export default function TeamDetailsModal({ team, onClose, userProfile, onUpdateT
             {team.members && team.members.length > 0 ? (
               <ul className="members-list-details">
                 {team.members.map((m, idx) => (
-                  <li key={idx}><i className="fas fa-user"></i> {m}</li>
+                  <li key={idx} title={m} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', overflow: 'hidden' }}>
+                    <i className="fas fa-user" style={{ flexShrink: 0 }}></i>
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flexGrow: 1, textAlign: 'left' }}>{m}</span>
+                  </li>
                 ))}
               </ul>
             ) : (
@@ -88,7 +91,9 @@ export default function TeamDetailsModal({ team, onClose, userProfile, onUpdateT
           </div>
 
           <div className="details-section">
-            <h4><i className="fas fa-history"></i> Histórico de Pontuações</h4>
+            <h4>
+              <i className="fas fa-history"></i> Histórico de Pontuações (Total: {history.reduce((acc, log) => acc + log.points, 0)} {eventSettings?.points_label ? eventSettings.points_label.toUpperCase() : 'PTS'})
+            </h4>
             {history.length > 0 ? (
               <div className="history-table-container">
                 <table className="history-table">
@@ -187,12 +192,23 @@ export default function TeamDetailsModal({ team, onClose, userProfile, onUpdateT
       </div>
 
       {logInfoModal && (
-        <div className="blur-modal-overlay" onClick={() => setLogInfoModal(null)}>
-          <div className="blur-modal-content" onClick={e => e.stopPropagation()}>
-            <h3>Detalhes do Lançamento</h3>
-            <p><strong>Autor:</strong> {logInfoModal.author || 'Desconhecido'}</p>
-            <p><strong>Motivo:</strong> {logInfoModal.desc}</p>
-            <button className="btn btn-primary" onClick={() => setLogInfoModal(null)} style={{ marginTop: '1rem', width: '100%' }}>Fechar</button>
+        <div className="modal-overlay" onClick={() => setLogInfoModal(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ position: 'relative', textAlign: 'left' }}>
+            <div className="modal-header">
+              <h3>Detalhes do Lançamento</h3>
+              <button className="btn-close" onClick={() => setLogInfoModal(null)}>
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+            <p style={{ marginBottom: '1rem', color: 'var(--text-main)' }}>
+              <strong>Autor:</strong> {logInfoModal.author || 'Desconhecido'}
+            </p>
+            <p style={{ marginBottom: '1.5rem', color: 'var(--text-main)', whiteSpace: 'pre-wrap', maxHeight: '12rem', overflowY: 'auto' }}>
+              <strong>Motivo:</strong> {logInfoModal.desc}
+            </p>
+            <div className="modal-actions">
+              <button className="btn btn-primary" onClick={() => setLogInfoModal(null)} style={{ width: '100%' }}>Fechar</button>
+            </div>
           </div>
         </div>
       )}

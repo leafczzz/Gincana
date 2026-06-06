@@ -6,10 +6,10 @@ export default function Sidebar({ isOpen, onClose, currentSection, onNavigate, u
     { id: 'flightPanel', icon: 'fa-gauge-high', label: 'Painel Dashboard', roles: ['admin', 'professor', 'supervisor'] },
     { id: 'teams', icon: 'fa-users', label: 'Equipes', roles: ['admin', 'professor', 'supervisor', 'student'] },
     { id: 'approvals', icon: 'fa-check-circle', label: 'Aprovações', roles: ['admin', 'professor'] },
-    { id: 'challenges', icon: 'fa-trophy', label: 'Desafios', roles: ['admin', 'professor', 'supervisor'] },
+    { id: 'challenges', icon: 'fa-trophy', label: eventSettings?.challenge_label_plural || 'Desafios', roles: ['admin', 'professor', 'supervisor'] },
     { id: 'users', icon: 'fa-user-cog', label: 'Usuários', roles: ['admin'] },
     { id: 'settings', icon: 'fa-cog', label: 'Configurações', roles: ['admin'] },
-    { id: 'flightPlan', icon: 'fa-ticket-alt', label: 'Plano de Voo', roles: ['admin', 'professor'] }
+    { id: 'flightPlan', icon: 'fa-ticket-alt', label: 'Tickets', roles: ['admin', 'professor'] }
   ]
 
   const navItems = allNavItems.filter(item => item.roles.includes(userRole))
@@ -29,7 +29,7 @@ export default function Sidebar({ isOpen, onClose, currentSection, onNavigate, u
               <i className={`fas ${eventSettings?.icon || 'fa-leaf'}`}></i>
             )}
           </div>
-          <h2>{eventSettings?.name || 'Gincana MT'}</h2>
+          <h2>{eventSettings?.name || 'Carregando...'}</h2>
         </div>
 
         <nav className="nav-menu">

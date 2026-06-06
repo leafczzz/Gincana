@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
+import { supabase } from '../../lib/supabase'
 import './Auth.css'
 
 const ROLE_OPTIONS = [
@@ -17,16 +18,63 @@ export default function RegisterModal({ onClose, onSwitchToLogin, showAlert }) {
     role: 'student',
     course: '',
   })
+  const [coursesList, setCoursesList] = useState([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const { signUp } = useAuth()
+
+  useEffect(() => {
+    async function fetchCourses() {
+      try {
+        const { data, error } = await supabase
+          .from('courses')
+          .select('name')
+          .order('name')
+        
+        if (error) throw error
+        if (data && data.length > 0) {
+          setCoursesList(data.map(c => c.name))
+        } else {
+          setCoursesList([
+            "Tec. Química",
+            "Tec. Administração",
+            "Tec. Informática",
+            "Superior - Sistemas de Informação",
+            "Superior - Administração",
+            "Superior - Engenharia"
+          ])
+        }
+      } catch (err) {
+        console.error('Erro ao buscar cursos:', err)
+        setCoursesList([
+          "Tec. Química",
+          "Tec. Administração",
+          "Tec. Informática",
+          "Superior - Sistemas de Informação",
+          "Superior - Administração",
+          "Superior - Engenharia"
+        ])
+      }
+    }
+    fetchCourses()
+  }, [])
 
   const updateField = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
   const validateStep1 = () => {
-    if (!formData.name.trim()) return 'Nome é obrigatório'
+    const name = formData.name.trim()
+    if (!name) return 'Nome é obrigatório'
+    if (name.length > 50) return 'O nome não pode ter mais de 50 caracteres'
+    
+    const words = name.split(/\s+/)
+    for (const word of words) {
+      if (word.length > 20) {
+        return 'Nenhuma palavra no nome pode ter mais de 20 caracteres'
+      }
+    }
+
     if (!formData.email.trim()) return 'Email é obrigatório'
     if (formData.password.length < 6) return 'Senha deve ter pelo menos 6 caracteres'
     if (formData.password !== formData.confirmPassword) return 'Senhas não coincidem'
@@ -80,8 +128,28 @@ export default function RegisterModal({ onClose, onSwitchToLogin, showAlert }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal modal-auth" onClick={e => e.stopPropagation()}>
+    <div className="modal-overlay">
+      <div className="modal modal-auth" style={{ position: 'relative' }} onClick={e => e.stopPropagation()}>
+        <button 
+          type="button" 
+          className="btn-close" 
+          onClick={onClose}
+          style={{ 
+            position: 'absolute', 
+            top: '0.8rem', 
+            right: '1rem', 
+            background: 'transparent', 
+            border: 'none', 
+            color: '#888', 
+            fontSize: '1.25rem', 
+            cursor: 'pointer',
+            transition: 'color 0.2s'
+          }}
+          onMouseEnter={e => e.target.style.color = '#fff'}
+          onMouseLeave={e => e.target.style.color = '#888'}
+        >
+          <i className="fas fa-times"></i>
+        </button>
         <div className="auth-header">
           <h3>Criar Conta</h3>
           <p>Passo {step} de 2</p>
@@ -93,12 +161,13 @@ export default function RegisterModal({ onClose, onSwitchToLogin, showAlert }) {
           {step === 1 ? (
             <>
               <div className="form-group">
-                <label>Nome Completo</label>
+                <label>Nome Completo (máx. 50 caracteres)</label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={e => updateField('name', e.target.value)}
                   placeholder="Ex: João da Silva"
+                  maxLength={50}
                   required
                 />
               </div>
@@ -152,12 +221,9 @@ export default function RegisterModal({ onClose, onSwitchToLogin, showAlert }) {
                   required
                 >
                   <option value="" disabled>Selecione seu curso...</option>
-                  <option value="Tec. Química">Tec. Química</option>
-                  <option value="Tec. Administração">Tec. Administração</option>
-                  <option value="Tec. Informática">Tec. Informática</option>
-                  <option value="Superior - Sistemas de Informação">Superior - Sistemas de Informação</option>
-                  <option value="Superior - Administração">Superior - Administração</option>
-                  <option value="Superior - Engenharia">Superior - Engenharia</option>
+                  {coursesList.map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
                   <option value="Sou professor">Sou professor</option>
                 </select>
               </div>

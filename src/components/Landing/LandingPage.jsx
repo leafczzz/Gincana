@@ -29,7 +29,7 @@ export default function LandingPage({ onEnterApp, onViewDashboard }) {
     return <div className="loading-screen">Carregando...</div>
   }
 
-  const eventName = settings?.name || 'Gincana MT'
+  const eventName = settings?.name || 'Carregando...'
   const logoUrl = settings?.logo_url || null
   const dateStr = settings?.event_date ? (() => {
     const [year, month, day] = settings.event_date.split('-')

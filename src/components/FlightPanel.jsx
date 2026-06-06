@@ -79,10 +79,10 @@ export default function FlightPanel({ teams, onBack }) {
           <table className="flight-table">
             <thead>
               <tr>
-                <th>{labels.idLabel}</th>
-                <th>{labels.teamLabel}</th>
-                <th>{labels.leaderLabel}</th>
-                <th>{labels.pointsLabel}</th>
+                <th>{labels.idLabel ? labels.idLabel.toUpperCase() : ''}</th>
+                <th>{labels.teamLabel ? labels.teamLabel.toUpperCase() : ''}</th>
+                <th>{labels.leaderLabel ? labels.leaderLabel.toUpperCase() : ''}</th>
+                <th>{labels.pointsLabel ? labels.pointsLabel.toUpperCase() : ''}</th>
                 <th>STATUS</th>
               </tr>
             </thead>
@@ -97,12 +97,17 @@ export default function FlightPanel({ teams, onBack }) {
                   const maxScore = Math.max(...teams.map(team => team.score))
                   const isLeader = t.score > 0 && t.score === maxScore
                   const isWaiting = t.score === 0
+                  const isDisqualified = t.score < 0
 
                   let statusText = 'DISPUTANDO'
                   let dotClass = ''
                   let statusColor = '#2ecc71'
 
-                  if (isLeader) {
+                  if (isDisqualified) {
+                    statusText = 'DESCLASSIFICADO'
+                    dotClass = 'disqualified'
+                    statusColor = '#95a5a6'
+                  } else if (isLeader) {
                     statusText = 'LIDERANDO'
                     dotClass = 'leading'
                     statusColor = '#e74c3c'
@@ -119,7 +124,7 @@ export default function FlightPanel({ teams, onBack }) {
                       <td className="leader-name">
                         {t.profiles?.name ? t.profiles.name.toUpperCase() : 'N/A'}
                       </td>
-                      <td className="points-col">{String(t.score).padStart(4, '0')}</td>
+                      <td className="points-col">{t.score < 0 ? String(t.score) : String(t.score).padStart(4, '0')}</td>
                       <td className="status-col" style={{ color: statusColor }}>
                         <span className={`pulse-dot-small ${dotClass}`}></span>
                         <span style={{ verticalAlign: 'middle' }}>{statusText}</span>

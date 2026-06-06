@@ -137,6 +137,8 @@
   box-shadow: 0 0.625rem 1.875rem rgba(0, 0, 0, 0.8);
   text-align: center;
   color: #fff;
+  max-height: 85vh;
+  overflow-y: auto;
 }
 
 .blur-modal-content h3 {

@@ -27,7 +27,7 @@ import './App.css'
 const sections = {
   dashboard: { title: 'Dashboard', desc: 'Bem-vindo ao gerenciador da gincana.' },
   flightPanel: { title: 'Painel de Voo', desc: 'Acompanhe as equipes em tempo real.' },
-  flightPlan: { title: 'Plano de Voo', desc: 'Gere tickets de desafios com carimbo.' },
+  flightPlan: { title: 'Tickets', desc: 'Gere tickets de desafios com carimbo.' },
   teams: { title: 'Gerenciar Equipes', desc: 'Cadastre e visualize as equipes participantes.' },
   challenges: { title: 'Desafios', desc: 'Gerencie os desafios da gincana.' },
   users: { title: 'Gerenciar Usuários', desc: 'Gerencie os usuários do sistema.' },
@@ -147,6 +147,15 @@ function AppContent() {
     }
   }, [user])
 
+  useEffect(() => {
+    if (profile && profile.role === 'student') {
+      const allowedSections = ['teams', 'flightPanel']
+      if (!allowedSections.includes(currentSection)) {
+        setCurrentSection('teams')
+      }
+    }
+  }, [profile, currentSection])
+
   async function fetchAllUsers() {
     try {
       const { data, error } = await supabase
@@ -170,7 +179,7 @@ function AppContent() {
       
       if (data) {
         setEventSettings(data)
-        document.title = data.name || 'Gincana MT'
+        document.title = data.name || 'Carregando...'
         // Aplicar cor principal do BD em toda a aplicação
         if (data.primary_color) {
           document.documentElement.style.setProperty('--primary-color', data.primary_color)
@@ -280,7 +289,11 @@ function AppContent() {
       
       if (error) throw error
       setTeams(prev => [...prev, data])
-      showToast(`Equipe "${name}" criada com sucesso!`, 'success')
+      if (profile?.role === 'student') {
+        showToast(`Equipe "${name}" criada com sucesso! Ela aguarda confirmação para ser listada.`, 'success')
+      } else {
+        showToast(`Equipe "${name}" criada com sucesso!`, 'success')
+      }
     } catch (error) {
       console.error('Erro ao criar equipe:', error.message)
       showToast('Erro ao criar equipe no banco', 'error')
@@ -289,11 +302,11 @@ function AppContent() {
     setTeamModalOpen(false)
   }
 
-  async function updateTeam(id, name, color, imageFile, members = [], leaderId, icon) {
+  async function updateTeam(id, name, color, imageFile, members = [], leaderId, icon, imageRemoved) {
     const team = teams.find(t => t.id === id)
     if (!team) return
 
-    let imageUrl = team.image_url
+    let imageUrl = imageRemoved ? null : team.image_url
 
     if (imageFile) {
       try {
@@ -654,7 +667,10 @@ function AppContent() {
           user={user}
           profile={profile}
           onLogin={() => handleShowLogin(true)}
-          onLogout={signOut}
+          onLogout={async () => {
+            await signOut()
+            setCurrentSection('dashboard')
+          }}
           onProfile={() => setProfileModalOpen(true)}
         />
 
@@ -684,6 +700,8 @@ function AppContent() {
                 setTeams(prev => prev.map(t => t.id === updatedTeam.id ? updatedTeam : t))
               }}
               onBlockTeam={(teamId) => updateTeamStatus(teamId, 'blocked')}
+              eventSettings={eventSettings}
+              showConfirm={showConfirm}
             />
           )}
           {currentSection === 'challenges' && (
@@ -702,11 +720,19 @@ function AppContent() {
               hasTeams={teams.length > 0}
               userRole={userRole}
               showAlert={showAlert}
+              eventSettings={eventSettings}
             />
           )}
-          {currentSection === 'users' && <Users showAlert={showAlert} showConfirm={showConfirm} />}
-          {currentSection === 'settings' && <Settings showAlert={showAlert} />}
-          {currentSection === 'approvals' && <Approvals showAlert={showAlert} />}
+          {currentSection === 'users' && profile?.role === 'admin' && <Users showAlert={showAlert} showConfirm={showConfirm} />}
+          {currentSection === 'settings' && profile?.role === 'admin' && <Settings showAlert={showAlert} showConfirm={showConfirm} onRefreshSettings={fetchEventSettings} />}
+          {currentSection === 'approvals' && ['admin', 'professor'].includes(profile?.role) && (
+            <Approvals 
+              showAlert={showAlert} 
+              profile={profile} 
+              eventSettings={eventSettings} 
+              showConfirm={showConfirm}
+            />
+          )}
           {currentSection === 'flightPlan' && <FlightPlan teams={approvedTeams} challenges={challenges} eventSettings={eventSettings} />}
         </div>
       </main>
@@ -721,13 +747,14 @@ function AppContent() {
             setTeamModalOpen(false)
             setTeamEdit(null)
           }}
-          onSave={(name, color, imageFile, members, leaderId, icon) => {
+          onSave={(name, color, imageFile, members, leaderId, icon, imageRemoved) => {
             if (teamEdit) {
-              updateTeam(teamEdit.id, name, color, imageFile, members, leaderId, icon)
+              updateTeam(teamEdit.id, name, color, imageFile, members, leaderId, icon, imageRemoved)
             } else {
               addTeam(name, color, imageFile, members, icon)
             }
           }}
+          showConfirm={showConfirm}
         />
       )}
 
@@ -742,6 +769,7 @@ function AppContent() {
           }}
           onSave={addPoints}
           showAlert={showAlert}
+          eventSettings={eventSettings}
         />
       )}
 
@@ -777,9 +805,13 @@ function AppContent() {
       )}
 
       {user && profile && profile.role !== 'student' && (
-        <button className="fab-button" onClick={() => openPointsModal()} title="Atribuir Pontos">
+        <button 
+          className="fab-button" 
+          onClick={() => openPointsModal()} 
+          title={`Atribuir ${eventSettings?.points_label ? (eventSettings.points_label.charAt(0).toUpperCase() + eventSettings.points_label.slice(1).toLowerCase()) : 'Pontos'}`}
+        >
           <i className="fas fa-plus"></i>
-          <span className="fab-label">Atribuir Pontos</span>
+          <span className="fab-label">Atribuir {eventSettings?.points_label ? (eventSettings.points_label.charAt(0).toUpperCase() + eventSettings.points_label.slice(1).toLowerCase()) : 'Pontos'}</span>
         </button>
       )}
 

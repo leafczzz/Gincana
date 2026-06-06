@@ -7,17 +7,35 @@ export default function ProfileModal({ profile, user, onClose, onUpdate, showAle
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    const trimmedName = name.trim()
+    if (!trimmedName) {
+      showAlert('Nome é obrigatório')
+      return
+    }
+    if (trimmedName.length > 50) {
+      showAlert('O nome não pode ter mais de 50 caracteres')
+      return
+    }
+    const words = trimmedName.split(/\s+/)
+    for (const word of words) {
+      if (word.length > 20) {
+        showAlert('Nenhuma palavra no nome pode ter mais de 20 caracteres')
+        return
+      }
+    }
+
     setLoading(true)
 
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ name })
+        .update({ name: trimmedName })
         .eq('id', user.id)
 
       if (error) throw error
 
-      onUpdate({ ...profile, name })
+      onUpdate({ ...profile, name: trimmedName })
     } catch (error) {
       console.error('Erro ao atualizar perfil:', error.message)
       showAlert('Erro ao atualizar perfil')
@@ -37,11 +55,12 @@ export default function ProfileModal({ profile, user, onClose, onUpdate, showAle
             <small className="text-muted">O email não pode ser alterado.</small>
           </div>
           <div className="form-group">
-            <label>Nome</label>
+            <label>Nome (máx. 50 caracteres)</label>
             <input 
               type="text" 
               value={name} 
               onChange={(e) => setName(e.target.value)} 
+              maxLength={50}
               required 
             />
           </div>
@@ -51,8 +70,8 @@ export default function ProfileModal({ profile, user, onClose, onUpdate, showAle
           </div>
           <div className="modal-actions">
             <button type="button" className="btn" onClick={onClose} disabled={loading}>Voltar</button>
-            <button type="submit" className="btn btn-primary" disabled={loading}>
-              {loading ? 'Salvando...' : 'Salvar Alterações'}
+            <button type="submit" className="btn btn-primary" disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+              <i className="fas fa-save"></i> {loading ? 'Salvando...' : 'Salvar Alterações'}
             </button>
           </div>
         </form>

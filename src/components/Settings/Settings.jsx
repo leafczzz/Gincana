@@ -17,8 +17,32 @@ const iconOptions = [
   { value: 'fa-cloud', label: 'Nuvem' },
   { value: 'fa-leaf', label: 'Folha' },
   { value: 'fa-plane', label: 'Avião' },
+  { value: 'fa-plane-departure', label: 'Decolagem' },
   { value: 'fa-rocket', label: 'Foguete' },
-  { value: 'fa-globe', label: 'Globo' }
+  { value: 'fa-helicopter', label: 'Helicóptero' },
+  { value: 'fa-ship', label: 'Navio' },
+  { value: 'fa-car', label: 'Carro' },
+  { value: 'fa-bicycle', label: 'Bicicleta' },
+  { value: 'fa-running', label: 'Corrida' },
+  { value: 'fa-globe', label: 'Globo' },
+  { value: 'fa-route', label: 'Rota' },
+  { value: 'fa-map-marker-alt', label: 'Marcador' },
+  { value: 'fa-compass', label: 'Bússola' },
+  { value: 'fa-ticket-alt', label: 'Ticket' },
+  { value: 'fa-users', label: 'Equipe' },
+  { value: 'fa-gamepad', label: 'Controle' },
+  { value: 'fa-shield-alt', label: 'Escudo' },
+  { value: 'fa-lightbulb', label: 'Ideia' },
+  { value: 'fa-music', label: 'Música' },
+  { value: 'fa-flag', label: 'Bandeira' },
+  { value: 'fa-smile', label: 'Sorriso' },
+  { value: 'fa-gift', label: 'Presente' },
+  { value: 'fa-brain', label: 'Cérebro' },
+  { value: 'fa-book', label: 'Livro' },
+  { value: 'fa-laptop', label: 'Notebook' },
+  { value: 'fa-graduation-cap', label: 'Formatura' },
+  { value: 'fa-umbrella', label: 'Guarda-chuva' },
+  { value: 'fa-hourglass-half', label: 'Ampulheta' }
 ]
 
 const defaultSettings = {
@@ -42,19 +66,77 @@ const defaultSettings = {
   id_label: 'VOO',
   team_label: 'EQUIPE / DESTINO',
   leader_label: 'LÍDER',
-  points_label: 'PONTOS'
+  points_label: 'PONTOS',
+  challenge_label: 'Desafio',
+  challenge_label_plural: 'Desafios'
 }
 
-export default function Settings({ showAlert }) {
+export default function Settings({ showAlert, showConfirm, onRefreshSettings }) {
   const [settings, setSettings] = useState(defaultSettings)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [logoPreview, setLogoPreview] = useState(null)
+  const [courses, setCourses] = useState([])
+  const [newCourseName, setNewCourseName] = useState('')
   const fileInputRef = useRef(null)
 
   useEffect(() => {
     fetchSettings()
+    fetchCourses()
   }, [])
+
+  async function fetchCourses() {
+    try {
+      const { data, error } = await supabase
+        .from('courses')
+        .select('*')
+        .order('name')
+      
+      if (error) throw error
+      setCourses(data || [])
+    } catch (error) {
+      console.error('Erro ao buscar cursos:', error)
+    }
+  }
+
+  async function addCourse(e) {
+    e.preventDefault()
+    const name = newCourseName.trim()
+    if (!name) return
+
+    try {
+      const { data, error } = await supabase
+        .from('courses')
+        .insert([{ name }])
+        .select()
+        .single()
+      
+      if (error) throw error
+      setCourses(prev => [...prev, data].sort((a,b) => a.name.localeCompare(b.name)))
+      setNewCourseName('')
+      showAlert('Curso adicionado com sucesso!', 'Sucesso')
+    } catch (error) {
+      console.error('Erro ao adicionar curso:', error)
+      showAlert('Erro ao adicionar curso. O nome pode ser duplicado.')
+    }
+  }
+
+  function removeCourse(id) {
+    showConfirm('Deseja realmente remover este curso? Alunos já cadastrados com ele não serão afetados, mas novos alunos não poderão selecioná-lo.', async () => {
+      try {
+        const { error } = await supabase
+          .from('courses')
+          .delete()
+          .eq('id', id)
+        
+        if (error) throw error
+        setCourses(prev => prev.filter(c => c.id !== id))
+      } catch (error) {
+        console.error('Erro ao remover curso:', error)
+        showAlert('Erro ao remover curso.')
+      }
+    })
+  }
 
   async function fetchSettings() {
     try {
@@ -142,6 +224,7 @@ export default function Settings({ showAlert }) {
       }
 
       showAlert('Configurações salvas com sucesso no banco de dados!', 'Sucesso!')
+      if (onRefreshSettings) onRefreshSettings()
     } catch (error) {
       console.error('ERRO AO SALVAR:', error)
       showAlert(
@@ -332,10 +415,76 @@ export default function Settings({ showAlert }) {
             <input type="text" name="points_label" value={settings.points_label || 'PONTOS'} onChange={handleChange} />
           </div>
 
-          <button type="submit" className="btn btn-primary" disabled={saving}>
-            {saving ? 'Salvando...' : 'Salvar Configurações'}
+          <div className="form-row">
+            <div className="form-group">
+              <label>Rótulo de Desafio (Singular)</label>
+              <input type="text" name="challenge_label" value={settings.challenge_label || 'Desafio'} onChange={handleChange} />
+            </div>
+            <div className="form-group">
+              <label>Rótulo de Desafio (Plural)</label>
+              <input type="text" name="challenge_label_plural" value={settings.challenge_label_plural || 'Desafios'} onChange={handleChange} />
+            </div>
+          </div>
+
+          <button type="submit" className="btn btn-primary" disabled={saving} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+            <i className="fas fa-save"></i> {saving ? 'Salvando...' : 'Salvar Configurações'}
           </button>
         </form>
+      </div>
+
+      <div className="card" style={{ marginTop: '2rem' }}>
+        <div className="card-header">
+          <h2>Gerenciar Cursos</h2>
+        </div>
+        
+        <form onSubmit={addCourse} style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', alignItems: 'flex-end' }}>
+          <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+            <label>Nome do Novo Curso</label>
+            <input 
+              type="text" 
+              value={newCourseName} 
+              onChange={e => setNewCourseName(e.target.value)} 
+              placeholder="Ex: Superior - Tecnologia em Alimentos"
+              required 
+            />
+          </div>
+          <button type="submit" className="btn btn-primary" style={{ height: '2.8rem' }}>Adicionar</button>
+        </form>
+
+        <div className="table-responsive">
+          <table className="users-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                <th style={{ padding: '0.75rem', textAlign: 'left' }}>Nome do Curso</th>
+                <th style={{ padding: '0.75rem', textAlign: 'center', width: '5rem' }}>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {courses.map(c => (
+                <tr key={c.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                  <td style={{ padding: '0.75rem' }}>{c.name}</td>
+                  <td style={{ padding: '0.75rem', textAlign: 'center' }}>
+                    <button 
+                      type="button" 
+                      className="btn btn-danger btn-sm" 
+                      onClick={() => removeCourse(c.id)} 
+                      title="Excluir Curso"
+                    >
+                      <i className="fas fa-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {courses.length === 0 && (
+                <tr>
+                  <td colSpan="2" style={{ padding: '1rem', textAlign: 'center', color: '#888' }}>
+                    Nenhum curso cadastrado. O sistema usará a lista padrão.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )

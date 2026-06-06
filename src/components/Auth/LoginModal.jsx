@@ -26,8 +26,28 @@ export default function LoginModal({ onClose, onSwitchToRegister }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal modal-auth" onClick={e => e.stopPropagation()}>
+    <div className="modal-overlay">
+      <div className="modal modal-auth" style={{ position: 'relative' }} onClick={e => e.stopPropagation()}>
+        <button 
+          type="button" 
+          className="btn-close" 
+          onClick={onClose}
+          style={{ 
+            position: 'absolute', 
+            top: '0.8rem', 
+            right: '1rem', 
+            background: 'transparent', 
+            border: 'none', 
+            color: '#888', 
+            fontSize: '1.25rem', 
+            cursor: 'pointer',
+            transition: 'color 0.2s'
+          }}
+          onMouseEnter={e => e.target.style.color = '#fff'}
+          onMouseLeave={e => e.target.style.color = '#888'}
+        >
+          <i className="fas fa-times"></i>
+        </button>
         <div className="auth-header">
           <h3>Entrar</h3>
           <p>Faça login para continuar</p>

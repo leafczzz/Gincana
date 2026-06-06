@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 
-export default function PointsModal({ teams, challenges, selectedChallenge, onClose, onSave, showAlert }) {
+export default function PointsModal({ teams, challenges, selectedChallenge, onClose, onSave, showAlert, eventSettings }) {
   const [activity, setActivity] = useState('custom')
   const [points, setPoints] = useState(10)
   const [winners, setWinners] = useState([])
-  const [participants, setParticipants] = useState(teams.map(t => t.id))
+  const [participants, setParticipants] = useState([])
   const [isConsolationMode, setIsConsolationMode] = useState(false)
+  const [justification, setJustification] = useState('')
 
   useEffect(() => {
     if (selectedChallenge) {
@@ -22,9 +23,11 @@ export default function PointsModal({ teams, challenges, selectedChallenge, onCl
     if (val === 'penalty') {
       setPoints(-5)
       setIsConsolationMode(false)
+      setWinners([]) // Limpa os vencedores já que é penalidade
     } else if (val === 'custom') {
       setPoints(10)
       setIsConsolationMode(false)
+      setWinners([]) // Limpa os vencedores já que é lançamento livre
     } else {
       const challenge = challenges.find(c => c.id.toString() === val)
       if (challenge) {
@@ -62,9 +65,16 @@ export default function PointsModal({ teams, challenges, selectedChallenge, onCl
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (winners.length === 0 && participants.length === 0) {
-      showAlert("Selecione pelo menos uma equipe!")
-      return
+    if (activity === 'penalty' || activity === 'custom') {
+      if (participants.length === 0) {
+        showAlert(activity === 'penalty' ? "Selecione pelo menos uma equipe para penalizar!" : "Selecione pelo menos uma equipe contemplada!")
+        return
+      }
+    } else {
+      if (winners.length === 0 && participants.length === 0) {
+        showAlert("Selecione pelo menos uma equipe!")
+        return
+      }
     }
 
     let desc = 'Pontuação Manual'
@@ -86,7 +96,7 @@ export default function PointsModal({ teams, challenges, selectedChallenge, onCl
       winners,
       participants,
       points,
-      desc,
+      desc: activity === 'penalty' ? `Penalidade: ${justification.trim()}` : desc,
       isConsolationMode,
       consolationPoints,
       challengeId
@@ -96,29 +106,45 @@ export default function PointsModal({ teams, challenges, selectedChallenge, onCl
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
-        <h3>Atribuir Pontos</h3>
+        <h3>Atribuir {eventSettings?.points_label ? (eventSettings.points_label.charAt(0).toUpperCase() + eventSettings.points_label.slice(1).toLowerCase()) : 'Pontos'}</h3>
         <form id="form-points" onSubmit={handleSubmit}>
           
           <div className="form-group">
-            <label>Atividade / Desafio</label>
+            <label>Atividade / {eventSettings?.challenge_label ? (eventSettings.challenge_label.charAt(0).toUpperCase() + eventSettings.challenge_label.slice(1).toLowerCase()) : 'Desafio'}</label>
             <select value={activity} onChange={handleActivityChange}>
               <option value="custom">-- Lançamento Livre --</option>
               {challenges.map(c => (
-                <option key={c.id} value={c.id}>{c.title} ({c.win_points || c.points} pts / {c.consolation_points || 0} pts)</option>
+                <option key={c.id} value={c.id}>{c.title} ({c.win_points || c.points} {eventSettings?.points_label ? eventSettings.points_label.toLowerCase() : 'pts'} / {c.consolation_points || 0} {eventSettings?.points_label ? eventSettings.points_label.toLowerCase() : 'pts'})</option>
               ))}
               <option value="penalty">Penalidade</option>
             </select>
           </div>
 
-          <div className="form-group">
-            <label>Pontos (Vitória / Lançamento)</label>
-            <input 
-              type="number" 
-              value={points} 
-              onChange={e => setPoints(parseInt(e.target.value) || 0)}
-              required 
-            />
-          </div>
+          {(activity === 'custom' || activity === 'penalty') && (
+            <div className="form-group">
+              <label>{eventSettings?.points_label ? (eventSettings.points_label.charAt(0).toUpperCase() + eventSettings.points_label.slice(1).toLowerCase()) : 'Pontos'} (Lançamento)</label>
+              <input 
+                type="number" 
+                value={points} 
+                onChange={e => setPoints(parseInt(e.target.value) || 0)}
+                required 
+              />
+            </div>
+          )}
+
+          {activity === 'penalty' && (
+            <div className="form-group">
+              <label>Justificativa da Penalidade (Obrigatória)</label>
+              <textarea
+                value={justification}
+                onChange={e => setJustification(e.target.value)}
+                placeholder="Descreva o motivo da penalidade..."
+                required
+                rows="3"
+                style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid rgba(0,0,0,0.1)', fontFamily: 'inherit' }}
+              />
+            </div>
+          )}
 
           <div className="form-group">
             <label>Seleção de Equipes</label>
@@ -130,12 +156,20 @@ export default function PointsModal({ teams, challenges, selectedChallenge, onCl
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border-color, rgba(255,255,255,0.1))' }}>
                     <th style={{ padding: '0.5rem' }}>Equipe</th>
-                    <th style={{ padding: '0.5rem', textAlign: 'center' }}>Participou</th>
-                    <th style={{ padding: '0.5rem', textAlign: 'center' }}>Venceu</th>
+                    {activity === 'penalty' || activity === 'custom' ? (
+                      <th style={{ padding: '0.5rem', textAlign: 'center' }}>
+                        {activity === 'penalty' ? 'Penalizado' : 'Contemplado'}
+                      </th>
+                    ) : (
+                      <>
+                        <th style={{ padding: '0.5rem', textAlign: 'center' }}>Participou</th>
+                        <th style={{ padding: '0.5rem', textAlign: 'center' }}>Venceu</th>
+                      </>
+                    )}
                   </tr>
                 </thead>
                 <tbody>
-                  {teams.map(t => (
+                  {[...teams].sort((a, b) => a.name.localeCompare(b.name)).map(t => (
                     <tr key={t.id} style={{ borderBottom: '1px solid var(--border-color, rgba(255,255,255,0.05))' }}>
                       <td style={{ padding: '0.5rem', fontWeight: 'bold', color: t.color }}>{t.name}</td>
                       <td style={{ padding: '0.5rem', textAlign: 'center' }}>
@@ -146,14 +180,16 @@ export default function PointsModal({ teams, challenges, selectedChallenge, onCl
                           style={{ width: '1.125rem', height: '1.125rem', cursor: 'pointer' }}
                         />
                       </td>
-                      <td style={{ padding: '0.5rem', textAlign: 'center' }}>
-                        <input 
-                          type="checkbox" 
-                          checked={winners.includes(t.id)}
-                          onChange={() => toggleWinner(t.id)}
-                          style={{ width: '1.125rem', height: '1.125rem', cursor: 'pointer' }}
-                        />
-                      </td>
+                      {activity !== 'penalty' && activity !== 'custom' && (
+                        <td style={{ padding: '0.5rem', textAlign: 'center' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={winners.includes(t.id)}
+                            onChange={() => toggleWinner(t.id)}
+                            style={{ width: '1.125rem', height: '1.125rem', cursor: 'pointer' }}
+                          />
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -163,7 +199,9 @@ export default function PointsModal({ teams, challenges, selectedChallenge, onCl
 
           <div className="modal-actions">
             <button type="button" className="btn" onClick={onClose}>Voltar</button>
-            <button type="submit" className="btn btn-accent">Confirmar</button>
+            <button type="submit" className="btn btn-accent" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+              <i className="fas fa-save"></i> Confirmar
+            </button>
           </div>
         </form>
       </div>

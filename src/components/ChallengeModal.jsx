@@ -12,7 +12,35 @@ const iconOptions = [
   { value: 'fa-tree', label: 'Árvore' },
   { value: 'fa-sun', label: 'Sol' },
   { value: 'fa-moon', label: 'Lua' },
-  { value: 'fa-cloud', label: 'Nuvem' }
+  { value: 'fa-cloud', label: 'Nuvem' },
+  { value: 'fa-leaf', label: 'Folha' },
+  { value: 'fa-plane', label: 'Avião' },
+  { value: 'fa-plane-departure', label: 'Decolagem' },
+  { value: 'fa-rocket', label: 'Foguete' },
+  { value: 'fa-helicopter', label: 'Helicóptero' },
+  { value: 'fa-ship', label: 'Navio' },
+  { value: 'fa-car', label: 'Carro' },
+  { value: 'fa-bicycle', label: 'Bicicleta' },
+  { value: 'fa-running', label: 'Corrida' },
+  { value: 'fa-globe', label: 'Globo' },
+  { value: 'fa-route', label: 'Rota' },
+  { value: 'fa-map-marker-alt', label: 'Marcador' },
+  { value: 'fa-compass', label: 'Bússola' },
+  { value: 'fa-ticket-alt', label: 'Ticket' },
+  { value: 'fa-users', label: 'Equipe' },
+  { value: 'fa-gamepad', label: 'Controle' },
+  { value: 'fa-shield-alt', label: 'Escudo' },
+  { value: 'fa-lightbulb', label: 'Ideia' },
+  { value: 'fa-music', label: 'Música' },
+  { value: 'fa-flag', label: 'Bandeira' },
+  { value: 'fa-smile', label: 'Sorriso' },
+  { value: 'fa-gift', label: 'Presente' },
+  { value: 'fa-brain', label: 'Cérebro' },
+  { value: 'fa-book', label: 'Livro' },
+  { value: 'fa-laptop', label: 'Notebook' },
+  { value: 'fa-graduation-cap', label: 'Formatura' },
+  { value: 'fa-umbrella', label: 'Guarda-chuva' },
+  { value: 'fa-hourglass-half', label: 'Ampulheta' }
 ]
 
 export default function ChallengeModal({ challenge, onClose, onSave }) {
@@ -85,6 +113,7 @@ export default function ChallengeModal({ challenge, onClose, onSave }) {
               onChange={e => setDescription(e.target.value)}
               placeholder="Descreva a atividade..."
               rows="3"
+              style={{ resize: 'vertical', minHeight: '6rem', maxHeight: '12rem', overflowY: 'auto' }}
             />
           </div>
           <div className="form-row" style={{ display: 'flex', gap: '1rem' }}>
@@ -127,7 +156,9 @@ export default function ChallengeModal({ challenge, onClose, onSave }) {
           </div>
           <div className="modal-actions">
             <button type="button" className="btn" onClick={onClose}>Voltar</button>
-            <button type="submit" className="btn btn-primary">{challenge ? 'Atualizar' : 'Salvar'}</button>
+            <button type="submit" className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+              <i className="fas fa-save"></i> {challenge ? 'Atualizar' : 'Salvar'}
+            </button>
           </div>
         </form>
       </div>

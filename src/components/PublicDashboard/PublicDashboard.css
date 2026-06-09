@@ -129,7 +129,6 @@
   z-index: 1;
 }
 
-/* Efeito de radar para o top 1 */
 .position-1 {
   border-color: #ffd700;
   box-shadow: 0 0 1.25rem rgba(255, 215, 0, 0.3);

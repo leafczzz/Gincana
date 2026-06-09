@@ -10,7 +10,6 @@ export default function Users({ showAlert, showConfirm }) {
   const [newPassword, setNewPassword] = useState('')
   const [resetting, setResetting] = useState(false)
 
-  // Estados para inserção de novo usuário
   const [courses, setCourses] = useState([])
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [createName, setCreateName] = useState('')
@@ -106,7 +105,6 @@ export default function Users({ showAlert, showConfirm }) {
 
       showAlert(`Usuário "${createName}" criado com sucesso!`, 'Sucesso')
       
-      // Resetar form
       setCreateName('')
       setCreateEmail('')
       setCreatePassword('')

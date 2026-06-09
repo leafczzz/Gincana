@@ -33,7 +33,7 @@ export default function Header({ title, desc, onMenuClick, onQuickPoints, user, 
       <div className="header-actions">
         {user ? (
           <div className="user-menu" style={{ position: 'relative' }}>
-              <div className="user-info">
+              <div className="user-info hide-mobile">
                 <span className="user-name">{profile?.name ? profile.name.split(' ')[0] : ''}</span>
                 <span className="user-role">{getRoleLabel(profile?.role)}</span>
               </div>

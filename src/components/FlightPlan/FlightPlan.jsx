@@ -22,7 +22,6 @@ export default function FlightPlan({ teams, challenges, eventSettings }) {
 
   const [ticketSettings, setTicketSettings] = useState(defaultTicketSettings)
 
-  // Rótulos temporários para o modal de configurações
   const [tempTitle, setTempTitle] = useState(defaultTicketSettings.title)
   const [tempLeaderLabel, setTempLeaderLabel] = useState(defaultTicketSettings.leaderLabel)
   const [tempMembersLabel, setTempMembersLabel] = useState(defaultTicketSettings.membersLabel)
@@ -31,7 +30,6 @@ export default function FlightPlan({ teams, challenges, eventSettings }) {
   const [tempIcon, setTempIcon] = useState(defaultTicketSettings.icon)
   const [tempRemoveRoute, setTempRemoveRoute] = useState(defaultTicketSettings.removeRoute)
 
-  // Sincroniza temporários quando abre o modal
   useEffect(() => {
     if (showConfigModal) {
       setTempTitle(ticketSettings.title)
@@ -56,11 +54,9 @@ export default function FlightPlan({ teams, challenges, eventSettings }) {
       removeRoute: tempRemoveRoute
     }
 
-    // Salva localmente primeiro (resiliência instantânea)
     setTicketSettings(newSettings)
     localStorage.setItem('gincana_ticket_settings', JSON.stringify(newSettings))
 
-    // Tenta salvar no Supabase
     try {
       const { data: currentSettings, error: selectError } = await supabase
         .from('event_settings')
@@ -139,7 +135,6 @@ export default function FlightPlan({ teams, challenges, eventSettings }) {
 
   useEffect(() => {
     async function fetchLabels() {
-      // Função auxiliar para carregar do localStorage
       const loadFromLocalStorage = () => {
         const saved = localStorage.getItem('gincana_ticket_settings')
         if (saved) {
@@ -154,14 +149,12 @@ export default function FlightPlan({ teams, challenges, eventSettings }) {
       }
 
       try {
-        // Tenta primeiro consultar incluindo as colunas do ticket
         const { data, error } = await supabase
           .from('event_settings')
           .select('id_prefix, id_label, team_label, leader_label, points_label, panel_title, primary_color, ticket_title, ticket_leader_label, ticket_members_label, ticket_airline, ticket_pass_title, ticket_icon, ticket_remove_route')
           .single()
 
         if (error) {
-          // Se falhou (por exemplo, porque as colunas de ticket não existem no BD ainda), faz a consulta básica
           console.warn('Erro ao buscar novas colunas de ticket no BD, tentando query padrão:', error)
           const { data: fallbackData, error: fallbackError } = await supabase
             .from('event_settings')
@@ -180,7 +173,6 @@ export default function FlightPlan({ teams, challenges, eventSettings }) {
               panelTitle: fallbackData.panel_title
             })
           } else {
-            // Tenta carregar do localStorage legado se houver
             const savedLegacy = localStorage.getItem('gincana_custom_labels')
             if (savedLegacy) {
               try { setCustomLabels(JSON.parse(savedLegacy)) } catch(e) { setCustomLabels({}) }
@@ -188,7 +180,6 @@ export default function FlightPlan({ teams, challenges, eventSettings }) {
               setCustomLabels({})
             }
           }
-          // Carrega as configurações de ticket do localStorage
           loadFromLocalStorage()
         } else if (data) {
           setCustomLabels({
@@ -200,7 +191,6 @@ export default function FlightPlan({ teams, challenges, eventSettings }) {
             panelTitle: data.panel_title
           })
 
-          // Se a tabela já possuir as novas colunas e elas não forem nulas, usa-as. Caso contrário, usa fallback do localStorage/default.
           const savedLocal = localStorage.getItem('gincana_ticket_settings')
           let localObj = {}
           if (savedLocal) {

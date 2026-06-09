@@ -109,7 +109,7 @@ export default function TeamDetailsModal({ team, onClose, userProfile, onUpdateT
                   </thead>
                   <tbody>
                     {history.map((log, idx) => {
-                      // format datetime
+
                       let timeStr = ''
                       let dateStr = log.date || ''
                       if (log.timestamp) {
@@ -117,7 +117,7 @@ export default function TeamDetailsModal({ team, onClose, userProfile, onUpdateT
                         timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                         dateStr = d.toLocaleDateString()
                       } else {
-                        // fallback if no timestamp
+
                         timeStr = '--:--'
                       }
 

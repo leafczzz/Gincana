@@ -62,7 +62,6 @@ body {
     min-height: 100vh;
 }
 
-/* Sidebar */
 .sidebar {
     background-color: var(--primary);
     color: white;
@@ -163,7 +162,6 @@ body {
     color: rgba(255,255,255,0.5);
 }
 
-/* Header */
 .header {
     background: var(--surface);
     padding: 1rem 1.5rem;
@@ -204,7 +202,6 @@ body {
     color: var(--text-muted);
 }
 
-/* Main Content */
 .main-content {
     padding: 1.5rem;
     width: 100%;
@@ -214,7 +211,6 @@ body {
     width: 100%;
 }
 
-/* Buttons */
 .btn {
     padding: 0.6rem 1.2rem;
     border: none;
@@ -263,7 +259,6 @@ body {
     color: var(--error);
 }
 
-/* Cards */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(9.375rem, 1fr));
@@ -334,7 +329,6 @@ body {
     color: var(--text-muted);
 }
 
-/* Team Grid */
 .teams-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr));
@@ -387,7 +381,6 @@ body {
     position: static;
 }
 
-/* Challenges Grid */
 .challenges-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(11.25rem, 1fr));
@@ -417,7 +410,6 @@ body {
     margin-bottom: 0.75rem;
 }
 
-/* Ranking Table */
 .table-container {
     width: 100%;
     overflow-x: auto;
@@ -459,7 +451,6 @@ body {
     flex-shrink: 0;
 }
 
-/* Top Teams */
 .team-rank-item {
     display: flex;
     align-items: center;
@@ -496,7 +487,6 @@ body {
     color: var(--accent);
 }
 
-/* Modal */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -600,7 +590,6 @@ body {
     flex: 1;
 }
 
-/* Toast */
 .toast-container {
     position: fixed;
     top: 1.5rem;
@@ -642,7 +631,6 @@ body {
     }
 }
 
-/* Responsive */
 @media (max-width: 48rem) {
     .hide-mobile {
         display: none;
@@ -677,7 +665,6 @@ body {
     }
 }
 
-/* Image Upload */
 .image-upload-container {
     width: 100%;
     min-height: 7.5rem;
@@ -742,7 +729,6 @@ body {
     background: var(--error);
 }
 
-/* Icon Select in Challenge Modal */
 .icon-select {
     display: flex;
     flex-wrap: wrap;
@@ -783,7 +769,6 @@ body {
     color: var(--primary);
 }
 
-/* Challenge Actions */
 .challenge-actions {
     display: flex;
     align-items: center;
@@ -811,7 +796,6 @@ body {
     color: var(--error);
 }
 
-/* Team Actions */
 .team-actions {
     display: flex;
     gap: 0.5rem;
@@ -826,7 +810,6 @@ body {
     color: var(--error);
 }
 
-/* Members Tag */
 .member-tag {
     display: flex;
     justify-content: space-between;
@@ -869,7 +852,6 @@ body {
     color: var(--error);
 }
 
-/* Floating Action Button (FAB) */
 .fab-button {
     position: fixed;
     bottom: 2rem;

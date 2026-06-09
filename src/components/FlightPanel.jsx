@@ -56,7 +56,6 @@ export default function FlightPanel({ teams, onBack }) {
 
   if (loading || !labels) return <div className="loading-state">Sincronizando painel...</div>
 
-
   return (
     <section id="flight-panel" className="section">
       <div className="flight-board">

@@ -4,7 +4,6 @@
   margin-top: 2rem;
 }
 
-/* Header Redesign */
 .plan-header {
   text-align: center;
   margin-bottom: 3rem;
@@ -39,14 +38,12 @@
   margin-right: 0.3rem;
 }
 
-/* Tickets Grid */
 .tickets-list {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
-/* Premium Ticket */
 .premium-ticket {
   display: flex;
   background: #ffffff;
@@ -58,7 +55,6 @@
   border: 1px solid rgba(0,0,0,0.1);
 }
 
-/* Main Ticket Area */
 .ticket-main {
   flex: 1;
   display: flex;
@@ -148,7 +144,6 @@
   font-weight: 800;
 }
 
-/* Rip / Divider */
 .ticket-rip {
   width: 2rem;
   position: relative;
@@ -189,7 +184,6 @@
   }
 }
 
-/* Ticket Stub */
 .ticket-stub {
   width: 280px;
   display: flex;

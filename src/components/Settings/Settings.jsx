@@ -59,7 +59,7 @@ const defaultSettings = {
   registration_open: true,
   icon: 'fa-leaf',
   logo_url: null,
-  // Campos de aparência (antes no localStorage)
+
   primary_color: '#2ecc71',
   panel_title: 'PAINEL DE VOO',
   id_prefix: 'GNC',
@@ -149,7 +149,7 @@ export default function Settings({ showAlert, showConfirm, onRefreshSettings }) 
       if (data) {
         setSettings(prev => ({ ...defaultSettings, ...data }))
         if (data.logo_url) setLogoPreview(data.logo_url)
-        // Aplicar cor principal ao carregar
+
         if (data.primary_color) {
           document.documentElement.style.setProperty('--primary-color', data.primary_color)
           document.documentElement.style.setProperty('--primary', data.primary_color)
@@ -179,7 +179,6 @@ export default function Settings({ showAlert, showConfirm, onRefreshSettings }) 
 
     setSettings(prev => ({ ...prev, [name]: finalValue }))
 
-    // Preview instantâneo da cor principal
     if (name === 'primary_color') {
       document.documentElement.style.setProperty('--primary-color', value)
       document.documentElement.style.setProperty('--primary', value)
@@ -214,10 +213,8 @@ export default function Settings({ showAlert, showConfirm, onRefreshSettings }) 
 
       if (error) throw error
 
-      // Limpar localStorage legado (migração)
       localStorage.removeItem('gincana_custom_labels')
 
-      // Aplicar cor imediatamente
       if (payload.primary_color) {
         document.documentElement.style.setProperty('--primary-color', payload.primary_color)
         document.documentElement.style.setProperty('--primary', payload.primary_color)

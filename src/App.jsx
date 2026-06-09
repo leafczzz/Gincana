@@ -6,7 +6,6 @@ import Header from './components/Header'
 import Dashboard from './components/Dashboard'
 import Teams from './components/Teams'
 import Challenges from './components/Challenges'
-import Scoreboard from './components/Scoreboard'
 import TeamModal from './components/TeamModal'
 import PointsModal from './components/PointsModal'
 import ChallengeModal from './components/ChallengeModal'
@@ -41,19 +40,16 @@ function AppContent() {
   const [showLogin, setShowLogin] = useState(false)
   const [showRegister, setShowRegister] = useState(false)
   
-  // Wrapper para trocar de seção limpando alertas
   const handleSectionChange = (section) => {
     setPopup(prev => ({ ...prev, isOpen: false }))
     setCurrentSection(section)
   }
 
-  // Wrapper para abrir login limpando alertas
   const handleShowLogin = (show) => {
     setPopup(prev => ({ ...prev, isOpen: false }))
     setShowLogin(show)
   }
 
-  // Wrapper para abrir cadastro limpando alertas
   const handleShowRegister = (show) => {
     setPopup(prev => ({ ...prev, isOpen: false }))
     setShowRegister(show)
@@ -118,7 +114,6 @@ function AppContent() {
   }
 
   useEffect(() => {
-    // Limpeza imediata de dados legados
     localStorage.removeItem('gincana_custom_labels');
     localStorage.removeItem('gincana_event_settings');
 
@@ -180,11 +175,10 @@ function AppContent() {
       if (data) {
         setEventSettings(data)
         document.title = data.name || 'Carregando...'
-        // Aplicar cor principal do BD em toda a aplicação
         if (data.primary_color) {
           document.documentElement.style.setProperty('--primary-color', data.primary_color)
           document.documentElement.style.setProperty('--primary', data.primary_color)
-          document.documentElement.style.setProperty('--primary-light', data.primary_color + 'cc') // Adiciona transparência para o hover
+          document.documentElement.style.setProperty('--primary-light', data.primary_color + 'cc')
         }
       }
     } catch (error) {
@@ -290,7 +284,10 @@ function AppContent() {
       if (error) throw error
       setTeams(prev => [...prev, data])
       if (profile?.role === 'student') {
-        showToast(`Equipe "${name}" criada com sucesso! Ela aguarda confirmação para ser listada.`, 'success')
+        showAlert(
+          `Sua equipe "${name}" foi cadastrada com sucesso!\n\nEla agora aguarda a confirmação de um professor ou administrador para ser listada e pontuada.`,
+          'Equipe Cadastrada'
+        )
       } else {
         showToast(`Equipe "${name}" criada com sucesso!`, 'success')
       }
@@ -469,7 +466,6 @@ function AppContent() {
             appliedPoints = consolationPoints
             appliedDesc = `${desc} (Participação)`
           } else {
-            // For custom and penalty activities, participating is enough to receive the points
             appliedPoints = points
           }
         }

@@ -23,11 +23,11 @@ export default function PointsModal({ teams, challenges, selectedChallenge, onCl
     if (val === 'penalty') {
       setPoints(-5)
       setIsConsolationMode(false)
-      setWinners([]) // Limpa os vencedores já que é penalidade
+      setWinners([])
     } else if (val === 'custom') {
       setPoints(10)
       setIsConsolationMode(false)
-      setWinners([]) // Limpa os vencedores já que é lançamento livre
+      setWinners([])
     } else {
       const challenge = challenges.find(c => c.id.toString() === val)
       if (challenge) {
@@ -41,8 +41,7 @@ export default function PointsModal({ teams, challenges, selectedChallenge, onCl
     setWinners(prev => {
       const isWinner = prev.includes(teamId)
       const newWinners = isWinner ? prev.filter(id => id !== teamId) : [...prev, teamId]
-      
-      // Se marcou como vencedor, automaticamente tem que ser participante
+
       if (!isWinner && !participants.includes(teamId)) {
         setParticipants(p => [...p, teamId])
       }
@@ -53,8 +52,7 @@ export default function PointsModal({ teams, challenges, selectedChallenge, onCl
   const toggleParticipant = (teamId) => {
     setParticipants(prev => {
       const isParticipant = prev.includes(teamId)
-      
-      // Se está desmarcando participante, tem que desmarcar como vencedor tbm
+
       if (isParticipant && winners.includes(teamId)) {
         setWinners(w => w.filter(id => id !== teamId))
       }

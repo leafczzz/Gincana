@@ -75,8 +75,6 @@ export function AuthProvider({ children }) {
 
       if (profileError) throw profileError
 
-      // Importante: Deslogar após o cadastro para evitar auto-login 
-      // e garantir que o usuário veja a mensagem de sucesso antes de tentar logar.
       await supabase.auth.signOut()
 
       return { error: null }

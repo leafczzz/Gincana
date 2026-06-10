@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import './Header.css'
 
-export default function Header({ title, desc, onMenuClick, onQuickPoints, user, profile, onLogin, onLogout, onProfile }) {
+export default function Header({ title, desc, onMenuClick, onQuickPoints, user, profile, onLogin, onLogout, onProfile, onPasswordChange }) {
   const [showDropdown, setShowDropdown] = useState(false)
 
   const getInitials = (name) => {
@@ -49,8 +49,12 @@ export default function Header({ title, desc, onMenuClick, onQuickPoints, user, 
                     <i className="fas fa-user"></i>
                     Meu Perfil
                   </div>
+                  <div className="dropdown-item" onClick={() => { setShowDropdown(false); onPasswordChange && onPasswordChange(); }}>
+                    <i className="fas fa-key"></i>
+                    Alterar Senha
+                  </div>
                   <div className="dropdown-divider"></div>
-                  <button className="dropdown-item" onClick={() => { setShowDropdown(false); onLogout() }}>
+                  <button className="dropdown-item" onClick={() => { setShowDropdown(false); onLogout() }} style={{ width: '100%', border: 'none', background: 'none', textAlign: 'left', font: 'inherit' }}>
                     <i className="fas fa-sign-out-alt"></i>
                     Sair
                   </button>

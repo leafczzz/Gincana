@@ -4,11 +4,8 @@ import './FlightPlan.css'
 
 const defaultTicketSettings = {
   title: 'PLANO DE VOO',
-  leaderLabel: 'PILOTO',
-  membersLabel: 'TRIPULAÇÃO',
   airline: 'IFF AIRLINES',
   passTitle: 'TICKET DE EMBARQUE',
-  icon: 'fa-plane',
   removeRoute: false
 }
 
@@ -23,21 +20,15 @@ export default function FlightPlan({ teams, challenges, eventSettings }) {
   const [ticketSettings, setTicketSettings] = useState(defaultTicketSettings)
 
   const [tempTitle, setTempTitle] = useState(defaultTicketSettings.title)
-  const [tempLeaderLabel, setTempLeaderLabel] = useState(defaultTicketSettings.leaderLabel)
-  const [tempMembersLabel, setTempMembersLabel] = useState(defaultTicketSettings.membersLabel)
   const [tempAirline, setTempAirline] = useState(defaultTicketSettings.airline)
   const [tempPassTitle, setTempPassTitle] = useState(defaultTicketSettings.passTitle)
-  const [tempIcon, setTempIcon] = useState(defaultTicketSettings.icon)
   const [tempRemoveRoute, setTempRemoveRoute] = useState(defaultTicketSettings.removeRoute)
 
   useEffect(() => {
     if (showConfigModal) {
       setTempTitle(ticketSettings.title)
-      setTempLeaderLabel(ticketSettings.leaderLabel)
-      setTempMembersLabel(ticketSettings.membersLabel)
       setTempAirline(ticketSettings.airline)
       setTempPassTitle(ticketSettings.passTitle)
-      setTempIcon(ticketSettings.icon)
       setTempRemoveRoute(!!ticketSettings.removeRoute)
     }
   }, [showConfigModal, ticketSettings])
@@ -46,11 +37,8 @@ export default function FlightPlan({ teams, challenges, eventSettings }) {
     e.preventDefault()
     const newSettings = {
       title: tempTitle.trim() || 'PLANO DE VOO',
-      leaderLabel: tempLeaderLabel.trim() || 'PILOTO',
-      membersLabel: tempMembersLabel.trim() || 'TRIPULAÇÃO',
       airline: tempAirline.trim() || 'IFF AIRLINES',
       passTitle: tempPassTitle.trim() || 'TICKET DE EMBARQUE',
-      icon: tempIcon,
       removeRoute: tempRemoveRoute
     }
 
@@ -70,11 +58,8 @@ export default function FlightPlan({ teams, challenges, eventSettings }) {
           .from('event_settings')
           .update({
             ticket_title: newSettings.title,
-            ticket_leader_label: newSettings.leaderLabel,
-            ticket_members_label: newSettings.membersLabel,
             ticket_airline: newSettings.airline,
             ticket_pass_title: newSettings.passTitle,
-            ticket_icon: newSettings.icon,
             ticket_remove_route: newSettings.removeRoute
           })
           .eq('id', currentSettings.id)
@@ -89,48 +74,6 @@ export default function FlightPlan({ teams, challenges, eventSettings }) {
     setShowConfigModal(false)
   }
 
-  const iconOptions = [
-    { value: 'fa-star', label: 'Estrela' },
-    { value: 'fa-trophy', label: 'Troféu' },
-    { value: 'fa-medal', label: 'Medalha' },
-    { value: 'fa-crown', label: 'Coroa' },
-    { value: 'fa-bolt', label: 'Raio' },
-    { value: 'fa-heart', label: 'Coração' },
-    { value: 'fa-fire', label: 'Fogo' },
-    { value: 'fa-mountain', label: 'Montanha' },
-    { value: 'fa-tree', label: 'Árvore' },
-    { value: 'fa-sun', label: 'Sol' },
-    { value: 'fa-moon', label: 'Lua' },
-    { value: 'fa-cloud', label: 'Nuvem' },
-    { value: 'fa-leaf', label: 'Folha' },
-    { value: 'fa-plane', label: 'Avião' },
-    { value: 'fa-plane-departure', label: 'Decolagem' },
-    { value: 'fa-rocket', label: 'Foguete' },
-    { value: 'fa-helicopter', label: 'Helicóptero' },
-    { value: 'fa-ship', label: 'Navio' },
-    { value: 'fa-car', label: 'Carro' },
-    { value: 'fa-bicycle', label: 'Bicicleta' },
-    { value: 'fa-running', label: 'Corrida' },
-    { value: 'fa-globe', label: 'Globo' },
-    { value: 'fa-route', label: 'Rota' },
-    { value: 'fa-map-marker-alt', label: 'Marcador' },
-    { value: 'fa-compass', label: 'Bússola' },
-    { value: 'fa-ticket-alt', label: 'Ticket' },
-    { value: 'fa-users', label: 'Equipe' },
-    { value: 'fa-gamepad', label: 'Controle' },
-    { value: 'fa-shield-alt', label: 'Escudo' },
-    { value: 'fa-lightbulb', label: 'Ideia' },
-    { value: 'fa-music', label: 'Música' },
-    { value: 'fa-flag', label: 'Bandeira' },
-    { value: 'fa-smile', label: 'Sorriso' },
-    { value: 'fa-gift', label: 'Presente' },
-    { value: 'fa-brain', label: 'Cérebro' },
-    { value: 'fa-book', label: 'Livro' },
-    { value: 'fa-laptop', label: 'Notebook' },
-    { value: 'fa-graduation-cap', label: 'Formatura' },
-    { value: 'fa-umbrella', label: 'Guarda-chuva' },
-    { value: 'fa-hourglass-half', label: 'Ampulheta' }
-  ]
 
 
   useEffect(() => {
@@ -151,7 +94,7 @@ export default function FlightPlan({ teams, challenges, eventSettings }) {
       try {
         const { data, error } = await supabase
           .from('event_settings')
-          .select('id_prefix, id_label, team_label, leader_label, points_label, panel_title, primary_color, ticket_title, ticket_leader_label, ticket_members_label, ticket_airline, ticket_pass_title, ticket_icon, ticket_remove_route')
+          .select('id_prefix, id_label, team_label, leader_label, points_label, panel_title, primary_color, ticket_title, ticket_airline, ticket_pass_title, ticket_remove_route')
           .single()
 
         if (error) {
@@ -199,11 +142,8 @@ export default function FlightPlan({ teams, challenges, eventSettings }) {
           
           setTicketSettings({
             title: data.ticket_title || localObj.title || defaultTicketSettings.title,
-            leaderLabel: data.ticket_leader_label || localObj.leaderLabel || defaultTicketSettings.leaderLabel,
-            membersLabel: data.ticket_members_label || localObj.membersLabel || defaultTicketSettings.membersLabel,
             airline: data.ticket_airline || localObj.airline || defaultTicketSettings.airline,
             passTitle: data.ticket_pass_title || localObj.passTitle || defaultTicketSettings.passTitle,
-            icon: data.ticket_icon || localObj.icon || defaultTicketSettings.icon,
             removeRoute: data.ticket_remove_route !== null && data.ticket_remove_route !== undefined ? data.ticket_remove_route : (localObj.removeRoute !== undefined ? localObj.removeRoute : defaultTicketSettings.removeRoute)
           })
         }
@@ -286,7 +226,7 @@ export default function FlightPlan({ teams, challenges, eventSettings }) {
             <div className="plan-header" style={{ marginBottom: '1.5rem' }}>
               {ticketSettings.removeRoute ? (
                 <div className="plane-icon-centered-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60px', margin: '0 auto 0.5rem auto' }}>
-                  <i className={`fas ${ticketSettings.icon}`} style={{ color: 'var(--primary-color, var(--primary))', fontSize: '3.5rem' }}></i>
+                  <i className={`fas ${eventSettings?.icon || 'fa-plane'}`} style={{ color: 'var(--primary-color, var(--primary))', fontSize: '3.5rem' }}></i>
                 </div>
               ) : (
                 <div className="plane-route-container" style={{ position: 'relative', width: '180px', height: '60px', margin: '0 auto 0.5rem auto' }}>
@@ -294,16 +234,16 @@ export default function FlightPlan({ teams, challenges, eventSettings }) {
                     <path d="M10 50 Q 60 10, 130 30 T 150 15" stroke="var(--primary-color, var(--primary))" strokeWidth="3" strokeDasharray="6 6" fill="none"/>
                     <circle cx="10" cy="50" r="5" fill="var(--primary-color, var(--primary))"/>
                   </svg>
-                  <i className={`fas ${ticketSettings.icon}`} style={{ position: 'absolute', right: '15px', top: '0', color: 'var(--primary-color, var(--primary))', fontSize: '2rem', transform: 'rotate(35deg)' }}></i>
+                  <i className={`fas ${eventSettings?.icon || 'fa-plane'}`} style={{ position: 'absolute', right: '24px', top: '-8px', color: 'var(--primary-color, var(--primary))', fontSize: '2rem', transform: 'rotate(35deg)' }}></i>
                 </div>
               )}
               
               <h1 style={{ marginBottom: '0.5rem' }}>{ticketSettings.title.toUpperCase()}</h1>
               
               <div className="plan-info">
-                <span><strong>{ticketSettings.membersLabel.toUpperCase()}:</strong> {generatedPlan.team.name.toUpperCase()}</span>
+                <span><strong>{(eventSettings?.team_label || 'TRIPULAÇÃO').toUpperCase()}:</strong> {generatedPlan.team.name.toUpperCase()}</span>
                 <span className="dot-separator">•</span>
-                <span><strong>{ticketSettings.leaderLabel.toUpperCase()}:</strong> {generatedPlan.team.profiles?.name?.toUpperCase() || 'N/A'}</span>
+                <span><strong>{(eventSettings?.leader_label || 'PILOTO').toUpperCase()}:</strong> {generatedPlan.team.profiles?.name?.toUpperCase() || 'N/A'}</span>
               </div>
             </div>
 
@@ -321,13 +261,13 @@ export default function FlightPlan({ teams, challenges, eventSettings }) {
                 <div className="premium-ticket" key={c.id}>
                   <div className="ticket-main">
                     <div className="ticket-topbar">
-                      <span className="airline-name"><i className={`fas ${ticketSettings.icon}`}></i> {ticketSettings.airline}</span>
+                      <span className="airline-name"><i className={`fas ${eventSettings?.icon || 'fa-plane'}`}></i> {ticketSettings.airline}</span>
                       <span className="board-pass-title">{ticketSettings.passTitle}</span>
                     </div>
                     
                     <div className="ticket-body">
                       <div className="ticket-title-large">
-                        <i className={`fas ${ticketSettings.icon}`}></i> <span>{c.title}</span>
+                        <i className={`fas ${eventSettings?.icon || 'fa-plane'}`}></i> <span>{c.title}</span>
                       </div>
 
                       <div className="ticket-challenge-details">
@@ -398,7 +338,7 @@ export default function FlightPlan({ teams, challenges, eventSettings }) {
             
             <form onSubmit={handleSaveSettings}>
               <div className="form-group">
-                <label>Título Principal do Bilhete</label>
+                <label>Título Principal do Ticket</label>
                 <input 
                   type="text" 
                   value={tempTitle}
@@ -410,30 +350,7 @@ export default function FlightPlan({ teams, challenges, eventSettings }) {
 
               <div className="form-row" style={{ display: 'flex', gap: '1rem' }}>
                 <div className="form-group" style={{ flex: 1 }}>
-                  <label>Rótulo do Líder</label>
-                  <input 
-                    type="text" 
-                    value={tempLeaderLabel}
-                    onChange={e => setTempLeaderLabel(e.target.value)}
-                    placeholder="Ex: PILOTO"
-                    required
-                  />
-                </div>
-                <div className="form-group" style={{ flex: 1 }}>
-                  <label>Rótulo dos Membros</label>
-                  <input 
-                    type="text" 
-                    value={tempMembersLabel}
-                    onChange={e => setTempMembersLabel(e.target.value)}
-                    placeholder="Ex: TRIPULAÇÃO"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="form-row" style={{ display: 'flex', gap: '1rem' }}>
-                <div className="form-group" style={{ flex: 1 }}>
-                  <label>Companhia Aérea</label>
+                  <label>Rótulo Superior Esquerdo</label>
                   <input 
                     type="text" 
                     value={tempAirline}
@@ -443,7 +360,7 @@ export default function FlightPlan({ teams, challenges, eventSettings }) {
                   />
                 </div>
                 <div className="form-group" style={{ flex: 1 }}>
-                  <label>Título do Ticket de Embarque</label>
+                  <label>Rótulo Superior Direito</label>
                   <input 
                     type="text" 
                     value={tempPassTitle}
@@ -452,40 +369,6 @@ export default function FlightPlan({ teams, challenges, eventSettings }) {
                     required
                   />
                 </div>
-              </div>
-
-              <div className="form-row" style={{ display: 'flex', gap: '1rem', borderTop: '1px solid rgba(0,0,0,0.1)', paddingTop: '1rem', marginTop: '1rem' }}>
-                <div className="form-group" style={{ flex: 1 }}>
-                  <label>Nome do Evento</label>
-                  <input 
-                    type="text" 
-                    value={eventSettings?.name || ''} 
-                    disabled 
-                    style={{ backgroundColor: 'rgba(0,0,0,0.05)', color: '#7f8c8d', cursor: 'not-allowed' }} 
-                  />
-                  <span style={{ fontSize: '0.75rem', color: '#95a5a6', fontStyle: 'italic', marginTop: '0.2rem', display: 'block' }}>segue o padrão da aba configurações</span>
-                </div>
-                <div className="form-group" style={{ flex: 1 }}>
-                  <label>Nome dos Pontos</label>
-                  <input 
-                    type="text" 
-                    value={eventSettings?.points_label || ''} 
-                    disabled 
-                    style={{ backgroundColor: 'rgba(0,0,0,0.05)', color: '#7f8c8d', cursor: 'not-allowed' }} 
-                  />
-                  <span style={{ fontSize: '0.75rem', color: '#95a5a6', fontStyle: 'italic', marginTop: '0.2rem', display: 'block' }}>segue o padrão da aba configurações</span>
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>Desafio</label>
-                <input 
-                  type="text" 
-                  value={eventSettings?.challenge_label || ''} 
-                  disabled 
-                  style={{ backgroundColor: 'rgba(0,0,0,0.05)', color: '#7f8c8d', cursor: 'not-allowed' }} 
-                />
-                <span style={{ fontSize: '0.75rem', color: '#95a5a6', fontStyle: 'italic', marginTop: '0.2rem', display: 'block' }}>segue o padrão da aba configurações</span>
               </div>
 
               <div className="form-group" style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -499,34 +382,6 @@ export default function FlightPlan({ teams, challenges, eventSettings }) {
                 <label htmlFor="remove-route-checkbox" style={{ margin: 0, cursor: 'pointer', userSelect: 'none' }}>
                   Remover a linha de rota do cabeçalho?
                 </label>
-              </div>
-
-              <div className="form-group" style={{ marginTop: '1rem' }}>
-                <label>Ícone do Ticket e Rota</label>
-                <div className="icon-select" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', maxHeight: '100px', overflowY: 'auto', padding: '0.5rem', border: '1px solid rgba(0,0,0,0.1)', borderRadius: '4px' }}>
-                  {iconOptions.map(opt => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      className={`icon-option ${tempIcon === opt.value ? 'selected' : ''}`}
-                      onClick={() => setTempIcon(opt.value)}
-                      title={opt.label}
-                      style={{
-                        width: '2.5rem',
-                        height: '2.5rem',
-                        border: tempIcon === opt.value ? '2px solid var(--primary-color, var(--primary))' : '2px solid transparent',
-                        borderRadius: '4px',
-                        background: tempIcon === opt.value ? 'rgba(var(--primary-rgb), 0.1)' : 'rgba(0,0,0,0.02)',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                    >
-                      <i className={`fas ${opt.value}`}></i>
-                    </button>
-                  ))}
-                </div>
               </div>
 
               <div className="modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1.5rem' }}>

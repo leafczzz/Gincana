@@ -18,6 +18,7 @@ import Users from './components/Users/Users'
 import Settings from './components/Settings/Settings'
 import Approvals from './components/Approvals/Approvals'
 import ProfileModal from './components/ProfileModal'
+import PasswordModal from './components/PasswordModal'
 import FlightPanel from './components/FlightPanel'
 import FlightPlan from './components/FlightPlan/FlightPlan'
 import PopupModal from './components/PopupModal'
@@ -66,6 +67,7 @@ function AppContent() {
   const [toasts, setToasts] = useState([])
   const [dataLoading, setDataLoading] = useState(true)
   const [profileModalOpen, setProfileModalOpen] = useState(false)
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false)
   const [publicView, setPublicView] = useState('landing')
   const [fullscreenFlight, setFullscreenFlight] = useState(false)
   
@@ -668,6 +670,7 @@ function AppContent() {
             setCurrentSection('dashboard')
           }}
           onProfile={() => setProfileModalOpen(true)}
+          onPasswordChange={() => setPasswordModalOpen(true)}
         />
 
         <div className="main-content">
@@ -796,6 +799,14 @@ function AppContent() {
             showToast('Perfil atualizado!', 'success')
             window.location.reload()
           }}
+          showAlert={showAlert}
+        />
+      )}
+
+      {passwordModalOpen && (
+        <PasswordModal
+          user={user}
+          onClose={() => setPasswordModalOpen(false)}
           showAlert={showAlert}
         />
       )}

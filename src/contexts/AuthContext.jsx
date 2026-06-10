@@ -37,6 +37,34 @@ export function AuthProvider({ children }) {
     return () => subscription?.unsubscribe()
   }, [])
 
+  useEffect(() => {
+    if (!user) return
+
+    let timeoutId
+
+    const resetTimer = () => {
+      if (timeoutId) clearTimeout(timeoutId)
+      timeoutId = setTimeout(() => {
+        signOut()
+      }, 15 * 60 * 1000)
+    }
+
+    const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart']
+    
+    events.forEach(event => {
+      document.addEventListener(event, resetTimer)
+    })
+
+    resetTimer()
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId)
+      events.forEach(event => {
+        document.removeEventListener(event, resetTimer)
+      })
+    }
+  }, [user])
+
   async function fetchProfile(userId) {
     try {
       const { data, error } = await supabase
